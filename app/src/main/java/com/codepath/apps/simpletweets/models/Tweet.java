@@ -10,6 +10,7 @@ public class Tweet {
     private int retweetCount;
     private int favouritesCount;
     private String createdAt;
+    private String idStr;
 
     public String getText() {
         return text;
@@ -31,5 +32,7 @@ public class Tweet {
         return createdAt;
     }
 
-    
+    public long getId() {
+        return Long.valueOf(idStr);
+    }
 }

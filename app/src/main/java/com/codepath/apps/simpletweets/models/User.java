@@ -8,6 +8,7 @@ public class User {
     private String name;
     private String location;
     private String screenName;
+    private String profileImageUrl;
 
     public String getUserName() {
         return name;
@@ -19,5 +20,9 @@ public class User {
 
     public String getScreenName() {
         return screenName;
+    }
+
+    public String getProfileImageUrl() {
+        return profileImageUrl;
     }
 }

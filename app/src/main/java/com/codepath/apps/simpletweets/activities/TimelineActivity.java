@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 
 import com.codepath.apps.simpletweets.R;
 import com.codepath.apps.simpletweets.TwitterApplication;
@@ -12,6 +13,10 @@ import com.codepath.apps.simpletweets.TwitterClient;
 import com.codepath.apps.simpletweets.adapters.TweetsAdapter;
 import com.codepath.apps.simpletweets.models.Tweet;
 import com.codepath.apps.simpletweets.models.TweetsResponse;
+import com.codepath.apps.simpletweets.utils.EndlessRecyclerViewScrollListener;
+import com.loopj.android.http.TextHttpResponseHandler;
+
+import org.apache.http.Header;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,14 +29,15 @@ public class TimelineActivity extends AppCompatActivity {
     @Bind(R.id.recycler_timeline) RecyclerView mTweetsView;
     private List<Tweet> mTweets;
     private TweetsAdapter mTweetsAdapter;
-
     private TwitterClient mTwitterClient;
+    private long mOldestTweetId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_timeline);
-            ButterKnife.bind(this);
+        ButterKnife.bind(this);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -39,15 +45,45 @@ public class TimelineActivity extends AppCompatActivity {
         // off of the application. Code smell.
         mTwitterClient = TwitterApplication.getRestClient();
         mTweets = new ArrayList<>();
-        setupTweetAdapter();
-        populateTimeline();
+        mOldestTweetId = 0;
+
+        setupTweetListView();
+        fetchTweetsForTimeline();
     }
 
-    private void setupTweetAdapter() {
+    private void setupTweetListView() {
         mTweetsAdapter = new TweetsAdapter(mTweets);
         mTweetsView.setAdapter(mTweetsAdapter);
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         mTweetsView.setLayoutManager(layoutManager);
+        mTweetsView.addOnScrollListener(new EndlessRecyclerViewScrollListener(layoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount) {
+                fetchTweetsForTimeline();
+            }
+        });
+    }
+
+    /**
+     * Fetch the next batch of tweets older than mOldestTweetId.
+     */
+    private void fetchTweetsForTimeline() {
+        mTwitterClient.getHomeTimeline(25, mOldestTweetId, new TextHttpResponseHandler() {
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                Log.d("DEBUG", "failed to get a response from twitter", throwable);
+            }
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, String responseString) {
+                List<Tweet> tweets = TweetsResponse.parseJSON(responseString);
+                if (tweets.size() > 0) {
+                    mTweets.addAll(tweets);
+                    mTweetsAdapter.notifyItemRangeInserted(mTweetsAdapter.getItemCount(), tweets.size());
+                    mOldestTweetId = tweets.get(tweets.size() - 1).getId();
+                }
+            }
+        });
     }
 
     private void populateTimeline() {
