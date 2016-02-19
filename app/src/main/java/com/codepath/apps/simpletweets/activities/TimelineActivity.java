@@ -2,7 +2,7 @@ package com.codepath.apps.simpletweets.activities;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -11,8 +11,6 @@ import android.util.Log;
 import android.view.View;
 
 import com.codepath.apps.simpletweets.R;
-import com.codepath.apps.simpletweets.TwitterApplication;
-import com.codepath.apps.simpletweets.TwitterClient;
 import com.codepath.apps.simpletweets.TwitterManager;
 import com.codepath.apps.simpletweets.adapters.TweetsAdapter;
 import com.codepath.apps.simpletweets.fragments.ComposeTweetDialogFragment;
@@ -26,14 +24,16 @@ import java.util.List;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
-public class TimelineActivity extends AppCompatActivity implements FloatingActionButton.OnClickListener {
+public class TimelineActivity extends AppCompatActivity
+        implements FloatingActionButton.OnClickListener,
+        ComposeTweetDialogFragment.OnComposeDialogFragmentListener {
 
     @Bind(R.id.recycler_timeline) RecyclerView mTweetsView;
     @Bind(R.id.fab_compose_tweet) FloatingActionButton mFloatingActionButton;
+    @Bind(R.id.swipe_refresh_layout) SwipeRefreshLayout mSwipeRefreshLayout;
 
     private List<Tweet> mTweets;
     private TweetsAdapter mTweetsAdapter;
-    private TwitterClient mTwitterClient;
     private long mOldestTweetId;
     private User mCurrentUser;
 
@@ -48,12 +48,12 @@ public class TimelineActivity extends AppCompatActivity implements FloatingActio
 
         // TODO - make this an actual singleton instead of hanging a global
         // off of the application. Code smell.
-        mTwitterClient = TwitterApplication.getRestClient();
         mTweets = new ArrayList<>();
         mOldestTweetId = 0;
 
         mFloatingActionButton.setOnClickListener(this);
 
+        setupSwipeToRefresh();
         setupTweetListView();
         fetchTweetsForTimeline();
         fetchCurrentUser();
@@ -61,8 +61,12 @@ public class TimelineActivity extends AppCompatActivity implements FloatingActio
 
     @Override
     public void onClick(View v) {
-        Snackbar.make(v, "our action was clicked", Snackbar.LENGTH_LONG).show();
         composeNewTweet();
+    }
+
+    @Override
+    public void onPostedTweet(Tweet newTweetPost) {
+
     }
 
     /**
@@ -70,7 +74,7 @@ public class TimelineActivity extends AppCompatActivity implements FloatingActio
      */
     private void composeNewTweet() {
         ComposeTweetDialogFragment tweetDialogFragment = ComposeTweetDialogFragment.newInstance(mCurrentUser);
-
+        tweetDialogFragment.show(getSupportFragmentManager(), "fragment_compose_tweet_dialog");
     }
 
     private void setupTweetListView() {
@@ -84,6 +88,16 @@ public class TimelineActivity extends AppCompatActivity implements FloatingActio
                 fetchTweetsForTimeline();
             }
         });
+    }
+
+    private void setupSwipeToRefresh() {
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+
+            }
+        });
+        mSwipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright);
     }
 
     /**

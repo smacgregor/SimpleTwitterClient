@@ -5,12 +5,12 @@ package com.codepath.apps.simpletweets.models;
  */
 public class Tweet {
 
-    private User user;
-    private String text;
-    private int retweetCount;
-    private int favouritesCount;
-    private String createdAt;
-    private String idStr;
+     User user;
+     String text;
+     int retweetCount;
+     int favouritesCount;
+     String createdAt;
+     String idStr;
 
     public String getText() {
         return text;
