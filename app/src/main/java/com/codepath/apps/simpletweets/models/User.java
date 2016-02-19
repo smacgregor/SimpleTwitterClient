@@ -1,8 +1,11 @@
 package com.codepath.apps.simpletweets.models;
 
+import org.parceler.Parcel;
+
 /**
  * Created by smacgregor on 2/17/16.
  */
+@Parcel
 public class User {
 
     private String name;

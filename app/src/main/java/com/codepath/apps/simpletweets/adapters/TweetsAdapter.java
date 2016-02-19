@@ -8,6 +8,10 @@ import android.widget.TextView;
 
 import com.codepath.apps.simpletweets.R;
 import com.codepath.apps.simpletweets.models.Tweet;
+import com.codepath.apps.simpletweets.models.User;
+import com.codepath.apps.simpletweets.utils.ParseRelativeDate;
+import com.makeramen.roundedimageview.RoundedImageView;
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -54,11 +58,23 @@ public class TweetsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     private void setupTweetViewHolder(TweetViewHolder holder, int position) {
         Tweet tweet = mTweets.get(position);
+        User user = tweet.getUser();
         holder.mTweetTextBody.setText(tweet.getText());
+        holder.mScreenName.setText("@" + user.getScreenName());
+        holder.mTimeStamp.setText(ParseRelativeDate.getRelativeTimeAgo(tweet.getCreatedAt()));
+        holder.mUserName.setText(user.getUserName());
+
+        Picasso.with(holder.mProfileImage.getContext()).
+                load(user.getProfileImageUrl()).
+                into(holder.mProfileImage);
     }
 
     public class TweetViewHolder extends RecyclerView.ViewHolder {
-        @Bind(R.id.text_tweet_body) TextView mTweetTextBody;
+        @Bind(R.id.text_body) TextView mTweetTextBody;
+        @Bind(R.id.text_timestamp) TextView mTimeStamp;
+        @Bind(R.id.text_screen_name) TextView mScreenName;
+        @Bind(R.id.text_name) TextView mUserName;
+        @Bind(R.id.image_profile) RoundedImageView mProfileImage;
 
         public TweetViewHolder(View itemView) {
             super(itemView);
