@@ -2,6 +2,7 @@ package com.codepath.apps.simpletweets.activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -9,6 +10,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.VideoView;
 
 import com.bumptech.glide.Glide;
 import com.codepath.apps.simpletweets.R;
@@ -31,6 +33,8 @@ public class TweetDetailsActivity extends AppCompatActivity {
     @Bind(R.id.text_screen_name) TextView mScreenName;
     @Bind(R.id.text_body) LinkifiedTextView mTweetBody;
     @Bind(R.id.image_media) ImageView mImageView;
+    @Bind(R.id.video_view)
+    VideoView mVideoView;
 
     private Tweet mTweet;
 
@@ -64,22 +68,44 @@ public class TweetDetailsActivity extends AppCompatActivity {
         return intent;
     }
 
-    private void setupTweet() {
+    private void setupVideo() {
+        if (TweetHelpers.hasVideo(mTweet)) {
+            mVideoView.setVideoPath(mTweet.getVideo().getUrl());
+            mVideoView.requestFocus();
+            mVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(MediaPlayer mp) {
+                    mVideoView.start();
+                    mp.setLooping(true);
+                }
+            });
+        } else {
+            mVideoView.setVisibility(View.GONE);
+        }
+    }
+
+    private void setupImage() {
         User user = mTweet.getUser();
-        mUserName.setText(user.getUserName());
-        mScreenName.setText(user.getScreenName());
-        mTweetBody.setText(mTweet.getText());
         Glide.with(mProfileImage.getContext()).
                 load(TweetHelpers.getBestProfilePictureforUser(user)).
                 into(mProfileImage);
 
         if (mTweet.getMedia() != null) {
-            mImageView.setVisibility(View.VISIBLE);
             Glide.with(mImageView.getContext()).
                     load(mTweet.getMedia().getUrl()).
                     into(mImageView);
         } else {
             mImageView.setVisibility(View.GONE);
         }
+    }
+
+    private void setupTweet() {
+        User user = mTweet.getUser();
+        mUserName.setText(user.getUserName());
+        mScreenName.setText(user.getScreenName());
+        mTweetBody.setText(mTweet.getText());
+
+        setupImage();
+        setupVideo();
     }
 }
