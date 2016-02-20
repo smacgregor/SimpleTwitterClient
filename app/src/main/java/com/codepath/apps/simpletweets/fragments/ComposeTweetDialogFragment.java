@@ -14,12 +14,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.codepath.apps.simpletweets.R;
 import com.codepath.apps.simpletweets.models.Tweet;
 import com.codepath.apps.simpletweets.models.User;
 import com.codepath.apps.simpletweets.utils.TweetHelpers;
 import com.makeramen.roundedimageview.RoundedImageView;
-import com.squareup.picasso.Picasso;
 
 import org.parceler.Parcels;
 
@@ -84,7 +84,7 @@ public class ComposeTweetDialogFragment extends DialogFragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         ButterKnife.bind(this, view);
-        Picasso.with(mProfileImage.getContext()).
+        Glide.with(mProfileImage.getContext()).
                 load(TweetHelpers.getBestProfilePictureforUser(mCurrentUser)).
                 into(mProfileImage);
         mEditTextField.requestFocus();

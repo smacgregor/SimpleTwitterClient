@@ -1,5 +1,8 @@
 package com.codepath.apps.simpletweets.utils;
 
+import android.text.TextUtils;
+
+import com.codepath.apps.simpletweets.models.Tweet;
 import com.codepath.apps.simpletweets.models.User;
 
 /**
@@ -15,5 +18,9 @@ public class TweetHelpers {
         String normalProfileUrl = user.getProfileImageUrl();
         // replace _normal with _bigger to get a higher res profile picture
         return normalProfileUrl.replace("_normal", "_bigger");
+    }
+
+    public static boolean hasVideo(Tweet tweet) {
+        return tweet.getVideo() != null && !TextUtils.isEmpty(tweet.getVideo().getUrl());
     }
 }

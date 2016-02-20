@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.codepath.apps.simpletweets.R;
 import com.codepath.apps.simpletweets.models.Tweet;
 import com.codepath.apps.simpletweets.models.User;
@@ -13,7 +14,6 @@ import com.codepath.apps.simpletweets.utils.LinkifiedTextView;
 import com.codepath.apps.simpletweets.utils.ParseRelativeDate;
 import com.codepath.apps.simpletweets.utils.TweetHelpers;
 import com.makeramen.roundedimageview.RoundedImageView;
-import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -25,6 +25,9 @@ import butterknife.ButterKnife;
  */
 public class TweetsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
+    private final int VIEW_TWEET = 0;
+    private final int VIEW_TWEET_WITH_MEDIA = 1;
+
     private List<Tweet> mTweets;
     private OnItemClickListener mOnClickListener;
 
@@ -35,18 +38,38 @@ public class TweetsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         LayoutInflater inflator = LayoutInflater.from(parent.getContext());
-        View currentView = inflator.inflate(R.layout.item_tweet, parent, false);
-        return new TweetViewHolder(currentView);
+        View currentView;
+        RecyclerView.ViewHolder viewHolder;
+
+        switch (viewType) {
+            case VIEW_TWEET_WITH_MEDIA:
+                currentView = inflator.inflate(R.layout.item_tweet_with_media, parent, false);
+                viewHolder = new TweetViewHolderWithMedia(currentView);
+                break;
+            default:
+                currentView = inflator.inflate(R.layout.item_tweet, parent, false);
+                viewHolder = new TweetViewHolder(currentView);
+                break;
+        }
+        return viewHolder;
     }
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        setupTweetViewHolder((TweetViewHolder) holder, position);
+        switch (holder.getItemViewType()) {
+            case VIEW_TWEET_WITH_MEDIA:
+                setupTweetWithMediaViewHolder((TweetViewHolderWithMedia) holder, position);
+                break;
+            default:
+                setupTweetViewHolder((TweetViewHolder) holder, position);
+                break;
+        }
     }
 
     @Override
     public int getItemViewType(int position) {
-        return super.getItemViewType(position);
+        Tweet tweet = mTweets.get(position);
+        return (tweet.getMedia() != null) ? VIEW_TWEET_WITH_MEDIA : VIEW_TWEET;
     }
 
     @Override
@@ -71,9 +94,19 @@ public class TweetsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         holder.mTimeStamp.setText(ParseRelativeDate.getRelativeTimeAgo(tweet.getCreatedAt()));
         holder.mUserName.setText(user.getUserName());
 
-        Picasso.with(holder.mProfileImage.getContext()).
+        Glide.with(holder.mProfileImage.getContext()).
                 load(TweetHelpers.getBestProfilePictureforUser(user)).
                 into(holder.mProfileImage);
+    }
+
+    private void setupTweetWithMediaViewHolder(TweetViewHolderWithMedia holder, int position) {
+        setupTweetViewHolder(holder, position);
+
+        Tweet tweet = mTweets.get(position);
+        // now load the media image
+        Glide.with(holder.mMediaImage.getContext()).
+                load(tweet.getMedia().getUrl()).
+                into(holder.mMediaImage);
     }
 
     public class TweetViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -94,6 +127,13 @@ public class TweetsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             if (mOnClickListener != null) {
                 mOnClickListener.onItemClick(v, getAdapterPosition());
             }
+        }
+    }
+
+    public class TweetViewHolderWithMedia extends TweetViewHolder {
+        @Bind(R.id.image_media) RoundedImageView mMediaImage;
+        public TweetViewHolderWithMedia(View itemView) {
+            super(itemView);
         }
     }
 
