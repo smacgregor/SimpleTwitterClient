@@ -73,6 +73,7 @@ public class TwitterManager {
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, String responseString) {
+                Log.d("MYSTUFF", responseString);
                 listener.onTweetsReceived(parseTweetsFromJSON(responseString));
             }
         });

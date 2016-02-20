@@ -16,6 +16,7 @@ public class Tweet {
     String createdAt;
     String idStr;
     Entities entities;
+    ExtendedEntities extendedEntities;
 
     public String getText() {
         return text;
@@ -45,8 +46,17 @@ public class Tweet {
         return (entities.media != null && entities.media.size() > 0) ? entities.media.get(0) : null;
     }
 
+    public TweetVideo getVideo() {
+        return (extendedEntities != null && extendedEntities.media != null && extendedEntities.media.size() > 0) ? extendedEntities.media.get(0) : null;
+    }
+
     @Parcel
     public static class Entities {
         List<TweetMedia> media;
+    }
+
+    @Parcel
+    public static class ExtendedEntities {
+        List<TweetVideo> media;
     }
 }
