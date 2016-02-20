@@ -6,15 +6,17 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.codepath.apps.simpletweets.R;
 import com.codepath.apps.simpletweets.models.Tweet;
 import com.codepath.apps.simpletweets.models.User;
 import com.codepath.apps.simpletweets.utils.LinkifiedTextView;
 import com.codepath.apps.simpletweets.utils.TweetHelpers;
 import com.makeramen.roundedimageview.RoundedImageView;
-import com.squareup.picasso.Picasso;
 
 import org.parceler.Parcels;
 
@@ -28,6 +30,7 @@ public class TweetDetailsActivity extends AppCompatActivity {
     @Bind(R.id.text_name) TextView mUserName;
     @Bind(R.id.text_screen_name) TextView mScreenName;
     @Bind(R.id.text_body) LinkifiedTextView mTweetBody;
+    @Bind(R.id.image_media) ImageView mImageView;
 
     private Tweet mTweet;
 
@@ -66,8 +69,17 @@ public class TweetDetailsActivity extends AppCompatActivity {
         mUserName.setText(user.getUserName());
         mScreenName.setText(user.getScreenName());
         mTweetBody.setText(mTweet.getText());
-        Picasso.with(mProfileImage.getContext()).
+        Glide.with(mProfileImage.getContext()).
                 load(TweetHelpers.getBestProfilePictureforUser(user)).
                 into(mProfileImage);
+
+        if (mTweet.getMedia() != null) {
+            mImageView.setVisibility(View.VISIBLE);
+            Glide.with(mImageView.getContext()).
+                    load(mTweet.getMedia().getUrl()).
+                    into(mImageView);
+        } else {
+            mImageView.setVisibility(View.GONE);
+        }
     }
 }

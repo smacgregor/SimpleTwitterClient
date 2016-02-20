@@ -1,16 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:descendantFocusability="blocksDescendants"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="com.codepath.apps.simpletweets.activities.TweetDetailsActivity"
-    tools:showIn="@layout/activity_tweet_details">
+    android:layout_height="match_parent">
+
 
     <com.makeramen.roundedimageview.RoundedImageView
         xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -32,33 +27,49 @@
         android:layout_alignParentTop="true"
         android:layout_toRightOf="@+id/image_profile"
         android:layout_toEndOf="@+id/image_profile"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:textAppearance="?android:attr/textAppearanceMedium"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/text_screen_name"
-        android:layout_toEndOf="@id/image_profile"
-        android:layout_toRightOf="@id/image_profile"
-        android:layout_below="@+id/text_name"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:paddingLeft="5dp"
+        android:paddingStart="5dp"
+        android:layout_toRightOf="@+id/text_name"
+        android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/text_timestamp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:gravity="end"
+        android:layout_toRightOf="@+id/text_name"
+        android:layout_toEndOf="@+id/text_name"
+        android:textAppearance="?android:attr/textAppearanceMedium"/>
 
     <com.codepath.apps.simpletweets.utils.LinkifiedTextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
         android:id="@+id/text_body"
-        android:paddingTop="5dp"
+        android:layout_below="@+id/text_screen_name"
+        android:layout_toRightOf="@+id/image_profile"
+        android:layout_toEndOf="@+id/image_profile"
         android:textColor="@color/style_color_black_text"
-        android:layout_below="@+id/image_profile"
-        android:autoLink="all"/>
+        android:autoLink="all"
+        android:textAppearance="?android:attr/textAppearanceMedium"/>
 
-    <ImageView
+    <com.makeramen.roundedimageview.RoundedImageView
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
-        android:layout_height="300dp"
+        android:layout_height="250dp"
         android:scaleType="centerCrop"
         android:id="@+id/image_media"
         android:layout_below="@id/text_body"
-        android:layout_marginTop="5dp"/>
+        android:layout_toRightOf="@id/image_profile"
+        android:layout_toEndOf="@id/image_profile"
+        android:layout_marginTop="5dp"
+        app:riv_corner_radius="5dp"/>
 
 </RelativeLayout>
