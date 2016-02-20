@@ -1,5 +1,6 @@
 package com.codepath.apps.simpletweets.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -26,6 +27,7 @@ import butterknife.ButterKnife;
 
 public class TimelineActivity extends AppCompatActivity
         implements FloatingActionButton.OnClickListener,
+        TweetsAdapter.OnItemClickListener,
         ComposeTweetDialogFragment.OnComposeDialogFragmentListener {
 
     @Bind(R.id.recycler_timeline) RecyclerView mTweetsView;
@@ -35,6 +37,7 @@ public class TimelineActivity extends AppCompatActivity
     private List<Tweet> mTweets;
     private TweetsAdapter mTweetsAdapter;
     private long mOldestTweetId;
+    private long mNewestTweetId;
     private User mCurrentUser;
 
     @Override
@@ -50,6 +53,7 @@ public class TimelineActivity extends AppCompatActivity
         // off of the application. Code smell.
         mTweets = new ArrayList<>();
         mOldestTweetId = 0;
+        mNewestTweetId = 0;
 
         mFloatingActionButton.setOnClickListener(this);
 
@@ -69,6 +73,12 @@ public class TimelineActivity extends AppCompatActivity
 
     }
 
+    @Override
+    public void onItemClick(View view, int position) {
+        Intent intent = TweetDetailsActivity.getStartIntent(this, mTweets.get(position));
+        startActivity(intent);
+    }
+
     /**
      * Open a compose tweet dialog fragment to allow the user to compose a new tweet
      */
@@ -80,6 +90,7 @@ public class TimelineActivity extends AppCompatActivity
     private void setupTweetListView() {
         mTweetsAdapter = new TweetsAdapter(mTweets);
         mTweetsView.setAdapter(mTweetsAdapter);
+        mTweetsAdapter.setOnItemClickListener(this);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         mTweetsView.setLayoutManager(layoutManager);
         mTweetsView.addOnScrollListener(new EndlessRecyclerViewScrollListener(layoutManager) {
@@ -94,7 +105,23 @@ public class TimelineActivity extends AppCompatActivity
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+                TwitterManager.getInstance().refreshTweetsForTimeline(mNewestTweetId, new TwitterManager.OnTimelineTweetsReceivedListener() {
+                    @Override
+                    public void onTweetsReceived(List<Tweet> tweets) {
+                        if (tweets.size() > 0) {
+                            mTweets.addAll(0, tweets);
+                            mTweetsAdapter.notifyItemRangeInserted(0, tweets.size());
+                            mNewestTweetId = tweets.get(0).getId();
+                        }
+                        mSwipeRefreshLayout.setRefreshing(false);
+                    }
 
+                    @Override
+                    public void onTweetsFailed(int statusCode, Throwable throwable) {
+                        Log.d("DEBUG", "failed to get a response from twitter", throwable);
+                        mSwipeRefreshLayout.setRefreshing(false);
+                    }
+                });
             }
         });
         mSwipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright);
@@ -111,6 +138,9 @@ public class TimelineActivity extends AppCompatActivity
                     mTweets.addAll(tweets);
                     mTweetsAdapter.notifyItemRangeInserted(mTweetsAdapter.getItemCount(), tweets.size());
                     mOldestTweetId = tweets.get(tweets.size() - 1).getId();
+                    if (mNewestTweetId == 0) {
+                        mNewestTweetId = tweets.get(0).getId();
+                    }
                 }
             }
 

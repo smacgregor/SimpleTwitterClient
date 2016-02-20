@@ -7,4 +7,5 @@
 
     <string name="edit_compose_tweet_hint">What\'s happening?</string>
     <string name="tweet_button">Tweet</string>
+    <string name="title_activity_tweet_details">Tweet</string>
 </resources>

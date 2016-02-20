@@ -4,15 +4,20 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
+import android.text.Editable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.codepath.apps.simpletweets.R;
 import com.codepath.apps.simpletweets.models.Tweet;
 import com.codepath.apps.simpletweets.models.User;
+import com.codepath.apps.simpletweets.utils.TweetHelpers;
 import com.makeramen.roundedimageview.RoundedImageView;
 import com.squareup.picasso.Picasso;
 
@@ -20,6 +25,7 @@ import org.parceler.Parcels;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import butterknife.OnTextChanged;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -32,9 +38,12 @@ import butterknife.ButterKnife;
 public class ComposeTweetDialogFragment extends DialogFragment {
 
     private static final String ARGUMENT_CURRENT_USER = "CURRENT_USER";
+    private static final int MAX_TWEET_LENGTH = 140;
 
     @Bind(R.id.edit_tweet_body) EditText mEditTextField;
+    @Bind(R.id.text_tweet_count) TextView mTweetCountTextView;
     @Bind(R.id.image_profile) RoundedImageView mProfileImage;
+    @Bind(R.id.button_tweet) Button mPostButton;
 
     private User mCurrentUser;
     private OnComposeDialogFragmentListener mListener;
@@ -76,7 +85,7 @@ public class ComposeTweetDialogFragment extends DialogFragment {
         super.onViewCreated(view, savedInstanceState);
         ButterKnife.bind(this, view);
         Picasso.with(mProfileImage.getContext()).
-                load(mCurrentUser.getProfileImageUrl()).
+                load(TweetHelpers.getBestProfilePictureforUser(mCurrentUser)).
                 into(mProfileImage);
         mEditTextField.requestFocus();
     }
@@ -108,6 +117,19 @@ public class ComposeTweetDialogFragment extends DialogFragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @OnTextChanged(R.id.edit_tweet_body)
+    void onTweetBodyTextChange(Editable tweetText) {
+        int remainingCharacters = MAX_TWEET_LENGTH - tweetText.toString().length();
+
+        mTweetCountTextView.setText(Integer.toString(remainingCharacters));
+        if (remainingCharacters < 0) {
+            mTweetCountTextView.setTextColor(ContextCompat.getColor(mTweetCountTextView.getContext(), R.color.red));
+        } else {
+            mTweetCountTextView.setTextColor(ContextCompat.getColor(mTweetCountTextView.getContext(), R.color.style_color_grey_text));
+        }
+        mPostButton.setEnabled(remainingCharacters >= 0);
     }
 
     public interface OnComposeDialogFragmentListener {

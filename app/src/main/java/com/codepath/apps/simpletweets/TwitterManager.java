@@ -45,11 +45,26 @@ public class TwitterManager {
         });
     }
 
+    public void refreshTweetsForTimeline(long lastSeenTweetId, final OnTimelineTweetsReceivedListener listener) {
+        mTwitterClient.getHomeTimeline(25, 0, lastSeenTweetId, new TextHttpResponseHandler() {
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                Log.d("DEBUG", "failed to get a response from twitter", throwable);
+                listener.onTweetsFailed(statusCode, throwable);
+            }
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, String responseString) {
+                listener.onTweetsReceived(parseTweetsFromJSON(responseString));
+            }
+        });
+    }
+
     /**
      * Fetch the next batch of tweets older than mOldestTweetId.
      */
     public void fetchTweetsForTimeline(long oldestTweetId, final OnTimelineTweetsReceivedListener listener) {
-        mTwitterClient.getHomeTimeline(25, oldestTweetId, new TextHttpResponseHandler() {
+        mTwitterClient.getHomeTimeline(25, oldestTweetId, 0, new TextHttpResponseHandler() {
             @Override
             public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
                 Log.d("DEBUG", "failed to get a response from twitter", throwable);

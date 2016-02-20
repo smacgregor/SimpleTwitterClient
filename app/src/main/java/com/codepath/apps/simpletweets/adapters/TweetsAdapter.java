@@ -9,7 +9,9 @@ import android.widget.TextView;
 import com.codepath.apps.simpletweets.R;
 import com.codepath.apps.simpletweets.models.Tweet;
 import com.codepath.apps.simpletweets.models.User;
+import com.codepath.apps.simpletweets.utils.LinkifiedTextView;
 import com.codepath.apps.simpletweets.utils.ParseRelativeDate;
+import com.codepath.apps.simpletweets.utils.TweetHelpers;
 import com.makeramen.roundedimageview.RoundedImageView;
 import com.squareup.picasso.Picasso;
 
@@ -24,6 +26,7 @@ import butterknife.ButterKnife;
 public class TweetsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private List<Tweet> mTweets;
+    private OnItemClickListener mOnClickListener;
 
     public TweetsAdapter(List<Tweet> tweets) {
         mTweets = tweets;
@@ -56,21 +59,25 @@ public class TweetsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         return mTweets.size();
     }
 
+    public void setOnItemClickListener(final OnItemClickListener mOnClickListener) {
+        this.mOnClickListener = mOnClickListener;
+    }
+
     private void setupTweetViewHolder(TweetViewHolder holder, int position) {
         Tweet tweet = mTweets.get(position);
         User user = tweet.getUser();
         holder.mTweetTextBody.setText(tweet.getText());
-        holder.mScreenName.setText("@" + user.getScreenName());
+        holder.mScreenName.setText(user.getScreenName());
         holder.mTimeStamp.setText(ParseRelativeDate.getRelativeTimeAgo(tweet.getCreatedAt()));
         holder.mUserName.setText(user.getUserName());
 
         Picasso.with(holder.mProfileImage.getContext()).
-                load(user.getProfileImageUrl()).
+                load(TweetHelpers.getBestProfilePictureforUser(user)).
                 into(holder.mProfileImage);
     }
 
-    public class TweetViewHolder extends RecyclerView.ViewHolder {
-        @Bind(R.id.text_body) TextView mTweetTextBody;
+    public class TweetViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        @Bind(R.id.text_body) LinkifiedTextView mTweetTextBody;
         @Bind(R.id.text_timestamp) TextView mTimeStamp;
         @Bind(R.id.text_screen_name) TextView mScreenName;
         @Bind(R.id.text_name) TextView mUserName;
@@ -79,6 +86,23 @@ public class TweetsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         public TweetViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
+            itemView.setOnClickListener(this);
         }
+
+        @Override
+        public void onClick(View v) {
+            if (mOnClickListener != null) {
+                mOnClickListener.onItemClick(v, getAdapterPosition());
+            }
+        }
+    }
+
+    public interface OnItemClickListener {
+        /**
+         * An item in the recycler view has been clicked
+         * @param view
+         * @param position
+         */
+        void onItemClick(View view, int position);
     }
 }
