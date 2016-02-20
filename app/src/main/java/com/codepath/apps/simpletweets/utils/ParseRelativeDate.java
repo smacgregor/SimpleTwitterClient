@@ -10,7 +10,7 @@ import java.util.Locale;
  * Created by smacgregor on 2/17/16.
  */
 public class ParseRelativeDate {
-    public String getRelativeTimeAgo(String rawJsonData) {
+    static public String getRelativeTimeAgo(String rawJsonData) {
         String dateFormat = "EEE MMM dd HH:mm:ss ZZZZZ yyyy";
         SimpleDateFormat dateFormatter = new SimpleDateFormat(dateFormat, Locale.ENGLISH);
         dateFormatter.setLenient(true);

@@ -1,17 +1,23 @@
 package com.codepath.apps.simpletweets.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.View;
 
 import com.codepath.apps.simpletweets.R;
-import com.codepath.apps.simpletweets.TwitterApplication;
-import com.codepath.apps.simpletweets.TwitterClient;
+import com.codepath.apps.simpletweets.TwitterManager;
 import com.codepath.apps.simpletweets.adapters.TweetsAdapter;
+import com.codepath.apps.simpletweets.fragments.ComposeTweetDialogFragment;
 import com.codepath.apps.simpletweets.models.Tweet;
-import com.codepath.apps.simpletweets.models.TweetsResponse;
+import com.codepath.apps.simpletweets.models.User;
+import com.codepath.apps.simpletweets.utils.EndlessRecyclerViewScrollListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,35 +25,144 @@ import java.util.List;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
-public class TimelineActivity extends AppCompatActivity {
+public class TimelineActivity extends AppCompatActivity
+        implements FloatingActionButton.OnClickListener,
+        TweetsAdapter.OnItemClickListener,
+        ComposeTweetDialogFragment.OnComposeDialogFragmentListener {
 
     @Bind(R.id.recycler_timeline) RecyclerView mTweetsView;
+    @Bind(R.id.fab_compose_tweet) FloatingActionButton mFloatingActionButton;
+    @Bind(R.id.swipe_refresh_layout) SwipeRefreshLayout mSwipeRefreshLayout;
+
     private List<Tweet> mTweets;
     private TweetsAdapter mTweetsAdapter;
-
-    private TwitterClient mTwitterClient;
+    private long mOldestTweetId;
+    private long mNewestTweetId;
+    private User mCurrentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_timeline);
-            ButterKnife.bind(this);
+        ButterKnife.bind(this);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         // TODO - make this an actual singleton instead of hanging a global
         // off of the application. Code smell.
-        mTwitterClient = TwitterApplication.getRestClient();
         mTweets = new ArrayList<>();
-        setupTweetAdapter();
-        populateTimeline();
+        mOldestTweetId = 0;
+        mNewestTweetId = 0;
+
+        mFloatingActionButton.setOnClickListener(this);
+
+        setupSwipeToRefresh();
+        setupTweetListView();
+        fetchTweetsForTimeline();
+        fetchCurrentUser();
     }
 
-    private void setupTweetAdapter() {
+    @Override
+    public void onClick(View v) {
+        composeNewTweet();
+    }
+
+    @Override
+    public void onPostedTweet(Tweet newTweetPost) {
+
+    }
+
+    @Override
+    public void onItemClick(View view, int position) {
+        Intent intent = TweetDetailsActivity.getStartIntent(this, mTweets.get(position));
+        startActivity(intent);
+    }
+
+    /**
+     * Open a compose tweet dialog fragment to allow the user to compose a new tweet
+     */
+    private void composeNewTweet() {
+        ComposeTweetDialogFragment tweetDialogFragment = ComposeTweetDialogFragment.newInstance(mCurrentUser);
+        tweetDialogFragment.show(getSupportFragmentManager(), "fragment_compose_tweet_dialog");
+    }
+
+    private void setupTweetListView() {
         mTweetsAdapter = new TweetsAdapter(mTweets);
         mTweetsView.setAdapter(mTweetsAdapter);
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+        mTweetsAdapter.setOnItemClickListener(this);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         mTweetsView.setLayoutManager(layoutManager);
+        mTweetsView.addOnScrollListener(new EndlessRecyclerViewScrollListener(layoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount) {
+                fetchTweetsForTimeline();
+            }
+        });
+    }
+
+    private void setupSwipeToRefresh() {
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                TwitterManager.getInstance().refreshTweetsForTimeline(mNewestTweetId, new TwitterManager.OnTimelineTweetsReceivedListener() {
+                    @Override
+                    public void onTweetsReceived(List<Tweet> tweets) {
+                        if (tweets.size() > 0) {
+                            mTweets.addAll(0, tweets);
+                            mTweetsAdapter.notifyItemRangeInserted(0, tweets.size());
+                            mNewestTweetId = tweets.get(0).getId();
+                        }
+                        mSwipeRefreshLayout.setRefreshing(false);
+                    }
+
+                    @Override
+                    public void onTweetsFailed(int statusCode, Throwable throwable) {
+                        Log.d("DEBUG", "failed to get a response from twitter", throwable);
+                        mSwipeRefreshLayout.setRefreshing(false);
+                    }
+                });
+            }
+        });
+        mSwipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright);
+    }
+
+    /**
+     * Fetch the next batch of tweets older than mOldestTweetId.
+     */
+    private void fetchTweetsForTimeline() {
+        TwitterManager.getInstance().fetchTweetsForTimeline(mOldestTweetId, new TwitterManager.OnTimelineTweetsReceivedListener() {
+            @Override
+            public void onTweetsReceived(List<Tweet> tweets) {
+                if (tweets.size() > 0) {
+                    mTweets.addAll(tweets);
+                    mTweetsAdapter.notifyItemRangeInserted(mTweetsAdapter.getItemCount(), tweets.size());
+                    mOldestTweetId = tweets.get(tweets.size() - 1).getId();
+                    if (mNewestTweetId == 0) {
+                        mNewestTweetId = tweets.get(0).getId();
+                    }
+                }
+            }
+
+            @Override
+            public void onTweetsFailed(int statusCode, Throwable throwable) {
+                Log.d("DEBUG", "failed to get a response from twitter", throwable);
+            }
+        });
+    }
+
+    private void fetchCurrentUser() {
+        TwitterManager.getInstance().fetchCurrentUser(new TwitterManager.OnCurrentUserReceivedListener() {
+            @Override
+            public void onUserReceived(User user) {
+                mCurrentUser = user;
+            }
+
+            @Override
+            public void onUserFailed(int statusCode, Throwable throwable) {
+                Log.d("DEBUG", "failed to get the current user", throwable);
+            }
+        });
     }
 
     private void populateTimeline() {
@@ -396,27 +511,6 @@ public class TimelineActivity extends AppCompatActivity {
                 "    \"in_reply_to_status_id\": null\n" +
                 "  }\n" +
                 "]";
-        List<Tweet> tweets = TweetsResponse.parseJSON(cachedResponse);
-        mTweets.addAll(tweets);
-        mTweetsAdapter.notifyItemRangeInserted(0, tweets.size() - 1);
-        /*
-        mTwitterClient.getHomeTimeline(25, 1, new TextHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, String responseString) {
-                Snackbar.make(findViewById(android.R.id.content), "got a response", Snackbar.LENGTH_LONG);
-                Log.d("DEBUG", responseString);
-                List<Tweet> tweets = TweetsResponse.parseJSON(responseString);
-                if (tweets != null) {
-
-                }
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                Log.d("DEBUG", responseString);
-            }
-        });
-        */
     }
 
 }

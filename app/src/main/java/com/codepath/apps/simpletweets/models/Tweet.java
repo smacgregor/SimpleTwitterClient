@@ -1,15 +1,20 @@
 package com.codepath.apps.simpletweets.models;
 
+import org.parceler.Parcel;
+
 /**
  * Created by smacgregor on 2/17/16.
  */
+@Parcel
+
 public class Tweet {
 
-    private User user;
-    private String text;
-    private int retweetCount;
-    private int favouritesCount;
-    private String createdAt;
+     User user;
+     String text;
+     int retweetCount;
+     int favouritesCount;
+     String createdAt;
+     String idStr;
 
     public String getText() {
         return text;
@@ -31,5 +36,7 @@ public class Tweet {
         return createdAt;
     }
 
-    
+    public long getId() {
+        return Long.valueOf(idStr);
+    }
 }
