@@ -30,8 +30,16 @@ public class Tweet {
         return retweetCount;
     }
 
-    public int getFavouritesCount() {
+    public void setRetweetCount(int retweetCount) {
+        this.retweetCount = retweetCount;
+    }
+
+    public int getFavoriteCount() {
         return favoriteCount;
+    }
+
+    public void setFavoriteCount(int favoriteCount) {
+        this.favoriteCount = favoriteCount;
     }
 
     public String getCreatedAt() {

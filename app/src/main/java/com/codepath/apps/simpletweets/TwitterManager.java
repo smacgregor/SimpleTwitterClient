@@ -74,6 +74,35 @@ public class TwitterManager {
         });
     }
 
+    public void markAsFavorite(long tweetId, final OnTweetUpdatedListener listener) {
+        mTwitterClient.markAsFavorite(tweetId, new TextHttpResponseHandler() {
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                Log.d("DEBUG", "failed to update favorite status", throwable);
+                listener.onTweetUpdateFailed(statusCode, throwable);
+            }
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, String responseString) {
+                listener.onTweetUpdated(parseTweetFromJSON(responseString));
+            }
+        });
+    }
+
+    public void retweet(long tweetId, final OnTweetUpdatedListener listener) {
+        mTwitterClient.retweet(tweetId, new TextHttpResponseHandler() {
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                listener.onTweetUpdateFailed(statusCode, throwable);
+            }
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, String responseString) {
+                listener.onTweetUpdated(parseTweetFromJSON(responseString));
+            }
+        });
+    }
+
     private Tweet parseTweetFromJSON(String response) {
         Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
         return gson.fromJson(response, Tweet.class);
@@ -105,5 +134,10 @@ public class TwitterManager {
     public interface OnNewPostReceivedListener {
         void onPostCreated(Tweet tweet);
         void onPostFailed(int statusCode, Throwable throwable);
+    }
+
+    public interface OnTweetUpdatedListener {
+        void onTweetUpdated(Tweet tweet);
+        void onTweetUpdateFailed(int statusCode, Throwable throwable);
     }
 }

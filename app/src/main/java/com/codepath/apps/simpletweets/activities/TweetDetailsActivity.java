@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
@@ -15,6 +16,7 @@ import android.widget.VideoView;
 
 import com.bumptech.glide.Glide;
 import com.codepath.apps.simpletweets.R;
+import com.codepath.apps.simpletweets.TwitterManager;
 import com.codepath.apps.simpletweets.fragments.ComposeTweetDialogFragment;
 import com.codepath.apps.simpletweets.models.Tweet;
 import com.codepath.apps.simpletweets.models.User;
@@ -83,6 +85,16 @@ public class TweetDetailsActivity extends AppCompatActivity implements
         // for now do nothing.
     }
 
+    @OnClick(R.id.button_favorite)
+    public void onFavoriteClicked(View view) {
+        markTweetAsFavorite();
+    }
+
+    @OnClick(R.id.button_retweet)
+    public void onRetweetClicked(View view) {
+        retweet();
+    }
+
     @OnClick(R.id.button_reply)
     public void onReplyClicked(View view) {
         ComposeTweetDialogFragment tweetDialogFragment = ComposeTweetDialogFragment.newInstance(mCurrentUser, mTweet);
@@ -126,9 +138,49 @@ public class TweetDetailsActivity extends AppCompatActivity implements
         mScreenName.setText(user.getScreenName());
         mTweetBody.setText(mTweet.getText());
         mRetweetButton.setText(Integer.toString(mTweet.getRetweetCount()));
-        mFavoritesButton.setText(Integer.toString(mTweet.getFavouritesCount()));
+        mFavoritesButton.setText(Integer.toString(mTweet.getFavoriteCount()));
 
         setupImage();
         setupVideo();
+    }
+
+    private void markTweetAsFavorite() {
+        TwitterManager.getInstance().markAsFavorite(mTweet.getId(), new TwitterManager.OnTweetUpdatedListener() {
+            @Override
+            public void onTweetUpdated(Tweet updatedTweet) {
+                mTweet.setFavoriteCount(updatedTweet.getFavoriteCount());
+                mFavoritesButton.setText(Integer.toString(mTweet.getFavoriteCount()));
+            }
+
+            @Override
+            public void onTweetUpdateFailed(int statusCode, Throwable throwable) {
+                displayAlertMessage(getResources().getString(R.string.error_favorite_failed));
+            }
+        });
+    }
+
+    private void retweet() {
+        TwitterManager.getInstance().retweet(mTweet.getId(), new TwitterManager.OnTweetUpdatedListener() {
+            @Override
+            public void onTweetUpdated(Tweet updatedTweet) {
+                // this will be easier when tweets are in a local db
+                mTweet.setRetweetCount(updatedTweet.getRetweetCount());
+                mRetweetButton.setText(Integer.toString(mTweet.getRetweetCount()));
+            }
+
+            @Override
+            public void onTweetUpdateFailed(int statusCode, Throwable throwable) {
+                displayAlertMessage(getResources().getString(R.string.error_retweet_failed));
+            }
+        });
+    }
+
+    /**
+     * Alert the user that their internet connection may be down /
+     * the server returned an error
+     */
+    private void displayAlertMessage(final String alertMessage) {
+        Snackbar.make(findViewById(android.R.id.content), alertMessage,
+                Snackbar.LENGTH_LONG).show();
     }
 }

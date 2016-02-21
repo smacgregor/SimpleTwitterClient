@@ -20,6 +20,7 @@ import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 /**
  * Created by smacgregor on 2/17/16.
@@ -95,7 +96,7 @@ public class TweetsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         holder.mTimeStamp.setText(ParseRelativeDate.getRelativeTimeAgo(tweet.getCreatedAt()));
         holder.mUserName.setText(user.getUserName());
 
-        int favoritesCount = tweet.getFavouritesCount();
+        int favoritesCount = tweet.getFavoriteCount();
         holder.mFavoritesButton.setText(favoritesCount > 0 ? Integer.toString(favoritesCount) : "");
 
         int retweetCount= tweet.getRetweetCount();
@@ -129,6 +130,13 @@ public class TweetsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             super(itemView);
             ButterKnife.bind(this, itemView);
             itemView.setOnClickListener(this);
+
+        }
+
+        @OnClick({R.id.button_retweet, R.id.button_favorite, R.id.button_reply})
+        public void onButtonClicked(View button) {
+            // forward this on to our activity to decide what to do
+            onClick(button);
         }
 
         @Override
