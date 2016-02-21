@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.codepath.apps.simpletweets.R;
+import com.codepath.apps.simpletweets.TwitterManager;
 import com.codepath.apps.simpletweets.models.Tweet;
 import com.codepath.apps.simpletweets.models.User;
 import com.codepath.apps.simpletweets.utils.TweetHelpers;
@@ -25,6 +26,7 @@ import org.parceler.Parcels;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import butterknife.OnTextChanged;
 
 /**
@@ -38,6 +40,8 @@ import butterknife.OnTextChanged;
 public class ComposeTweetDialogFragment extends DialogFragment {
 
     private static final String ARGUMENT_CURRENT_USER = "CURRENT_USER";
+    private static final String ARGUMENT_INREPLY_TO_TWEET = "INREPLY_TO_TWEET";
+
     private static final int MAX_TWEET_LENGTH = 140;
 
     @Bind(R.id.edit_tweet_body) EditText mEditTextField;
@@ -46,6 +50,7 @@ public class ComposeTweetDialogFragment extends DialogFragment {
     @Bind(R.id.button_tweet) Button mPostButton;
 
     private User mCurrentUser;
+    private Tweet mInReplyToTweet;
     private OnComposeDialogFragmentListener mListener;
 
     public ComposeTweetDialogFragment() {}
@@ -57,10 +62,13 @@ public class ComposeTweetDialogFragment extends DialogFragment {
      * @param currentUser The current user
      * @return A new instance of fragment ComposeTweetDialogFragment.
      */
-    public static ComposeTweetDialogFragment newInstance(User currentUser) {
+    public static ComposeTweetDialogFragment newInstance(User currentUser, Tweet inReplyToTweet) {
         ComposeTweetDialogFragment fragment = new ComposeTweetDialogFragment();
         Bundle args = new Bundle();
         args.putParcelable(ARGUMENT_CURRENT_USER, Parcels.wrap(currentUser));
+        if (inReplyToTweet != null) {
+            args.putParcelable(ARGUMENT_INREPLY_TO_TWEET, Parcels.wrap(inReplyToTweet));
+        }
         fragment.setArguments(args);
         return fragment;
     }
@@ -70,6 +78,7 @@ public class ComposeTweetDialogFragment extends DialogFragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mCurrentUser = Parcels.unwrap(getArguments().getParcelable(ARGUMENT_CURRENT_USER));
+            mInReplyToTweet = Parcels.unwrap(getArguments().getParcelable(ARGUMENT_INREPLY_TO_TWEET));
         }
     }
 
@@ -130,6 +139,21 @@ public class ComposeTweetDialogFragment extends DialogFragment {
             mTweetCountTextView.setTextColor(ContextCompat.getColor(mTweetCountTextView.getContext(), R.color.style_color_grey_text));
         }
         mPostButton.setEnabled(remainingCharacters >= 0);
+    }
+
+    @OnClick(R.id.button_tweet)
+    void onPostTweetClicked(final View view) {
+        TwitterManager.getInstance().postUpdate(mEditTextField.getText().toString(), 0, new TwitterManager.OnNewPostReceivedListener() {
+            @Override
+            public void onPostCreated(Tweet tweet) {
+                mListener.onPostedTweet(tweet);
+                dismiss();
+            }
+
+            @Override
+            public void onPostFailed(int statusCode, Throwable throwable) {
+            }
+        });
     }
 
     public interface OnComposeDialogFragmentListener {

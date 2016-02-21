@@ -45,8 +45,8 @@ public class TwitterManager {
         });
     }
 
-    public void refreshTweetsForTimeline(long lastSeenTweetId, final OnTimelineTweetsReceivedListener listener) {
-        mTwitterClient.getHomeTimeline(25, 0, lastSeenTweetId, new TextHttpResponseHandler() {
+    public void fetchTimelineTweets(long oldestTweetId, long lastSeenTweetId, final OnTimelineTweetsReceivedListener listener) {
+        mTwitterClient.getHomeTimeline(25, oldestTweetId, lastSeenTweetId, new TextHttpResponseHandler() {
             @Override
             public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
                 Log.d("DEBUG", "failed to get a response from twitter", throwable);
@@ -60,23 +60,23 @@ public class TwitterManager {
         });
     }
 
-    /**
-     * Fetch the next batch of tweets older than mOldestTweetId.
-     */
-    public void fetchTweetsForTimeline(long oldestTweetId, final OnTimelineTweetsReceivedListener listener) {
-        mTwitterClient.getHomeTimeline(25, oldestTweetId, 0, new TextHttpResponseHandler() {
+    public void postUpdate(final String postContents, long inReplyToStatusId, final OnNewPostReceivedListener listener) {
+        mTwitterClient.postUpdate(postContents, inReplyToStatusId, new TextHttpResponseHandler() {
             @Override
             public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                Log.d("DEBUG", "failed to get a response from twitter", throwable);
-                listener.onTweetsFailed(statusCode, throwable);
+                listener.onPostFailed(statusCode, throwable);
             }
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, String responseString) {
-                Log.d("MYSTUFF", responseString);
-                listener.onTweetsReceived(parseTweetsFromJSON(responseString));
+                listener.onPostCreated(parseTweetFromJSON(responseString));
             }
         });
+    }
+
+    private Tweet parseTweetFromJSON(String response) {
+        Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+        return gson.fromJson(response, Tweet.class);
     }
 
     private List<Tweet> parseTweetsFromJSON(String response) {
@@ -100,5 +100,10 @@ public class TwitterManager {
     public interface OnCurrentUserReceivedListener {
         void onUserReceived(User user);
         void onUserFailed(int statusCode, Throwable throwable);
+    }
+
+    public interface OnNewPostReceivedListener {
+        void onPostCreated(Tweet tweet);
+        void onPostFailed(int statusCode, Throwable throwable);
     }
 }
