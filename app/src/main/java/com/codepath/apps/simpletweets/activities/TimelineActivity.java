@@ -81,7 +81,7 @@ public class TimelineActivity extends AppCompatActivity
 
     @Override
     public void onItemClick(View view, int position) {
-        Intent intent = TweetDetailsActivity.getStartIntent(this, mTweets.get(position));
+        Intent intent = TweetDetailsActivity.getStartIntent(this, mTweets.get(position), mCurrentUser);
         startActivity(intent);
     }
 

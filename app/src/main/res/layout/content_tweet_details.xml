@@ -68,4 +68,12 @@
         android:layout_marginTop="5dp"
         android:id="@+id/video_view"/>
 
+    <LinearLayout
+        android:layout_below="@+id/image_media"
+        android:layout_marginTop="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <include layout="@layout/content_tweet_action_buttons"/>
+    </LinearLayout>
+
 </RelativeLayout>

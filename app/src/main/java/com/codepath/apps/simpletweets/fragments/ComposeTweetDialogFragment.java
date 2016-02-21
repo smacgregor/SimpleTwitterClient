@@ -96,6 +96,9 @@ public class ComposeTweetDialogFragment extends DialogFragment {
         Glide.with(mProfileImage.getContext()).
                 load(TweetHelpers.getBestProfilePictureforUser(mCurrentUser)).
                 into(mProfileImage);
+        if (mInReplyToTweet != null) {
+            mEditTextField.setText(mInReplyToTweet.getUser().getScreenName());
+        }
         mEditTextField.requestFocus();
     }
 

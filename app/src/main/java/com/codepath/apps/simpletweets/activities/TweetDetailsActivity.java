@@ -8,12 +8,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.VideoView;
 
 import com.bumptech.glide.Glide;
 import com.codepath.apps.simpletweets.R;
+import com.codepath.apps.simpletweets.fragments.ComposeTweetDialogFragment;
 import com.codepath.apps.simpletweets.models.Tweet;
 import com.codepath.apps.simpletweets.models.User;
 import com.codepath.apps.simpletweets.utils.LinkifiedTextView;
@@ -24,18 +26,24 @@ import org.parceler.Parcels;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
-public class TweetDetailsActivity extends AppCompatActivity {
+public class TweetDetailsActivity extends AppCompatActivity implements
+        ComposeTweetDialogFragment.OnComposeDialogFragmentListener {
 
     private static String EXTRA_TWEET = "com.codepath.apps.simpletweets.activities.tweetdetails";
+    private static String EXTRA_CURRENT_USER = "com.codepath.apps.simpletweets.activities.currentuser";
+
     @Bind(R.id.image_profile) RoundedImageView mProfileImage;
     @Bind(R.id.text_name) TextView mUserName;
     @Bind(R.id.text_screen_name) TextView mScreenName;
     @Bind(R.id.text_body) LinkifiedTextView mTweetBody;
     @Bind(R.id.image_media) ImageView mImageView;
-    @Bind(R.id.video_view)
-    VideoView mVideoView;
+    @Bind(R.id.video_view) VideoView mVideoView;
+    @Bind(R.id.button_retweet) Button mRetweetButton;
+    @Bind(R.id.button_favorite) Button mFavoritesButton;
 
+    private User mCurrentUser;
     private Tweet mTweet;
 
     @Override
@@ -49,6 +57,7 @@ public class TweetDetailsActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         mTweet = Parcels.unwrap(getIntent().getParcelableExtra(TweetDetailsActivity.EXTRA_TWEET));
+        mCurrentUser = Parcels.unwrap(getIntent().getParcelableExtra(TweetDetailsActivity.EXTRA_CURRENT_USER));
         setupTweet();
     }
 
@@ -62,10 +71,22 @@ public class TweetDetailsActivity extends AppCompatActivity {
         }
     }
 
-    public static Intent getStartIntent(Context context, Tweet tweet) {
+    public static Intent getStartIntent(Context context, Tweet tweet, User currentUser) {
         Intent intent= new Intent(context, TweetDetailsActivity.class);
         intent.putExtra(TweetDetailsActivity.EXTRA_TWEET, Parcels.wrap(tweet));
+        intent.putExtra(TweetDetailsActivity.EXTRA_CURRENT_USER, Parcels.wrap(currentUser));
         return intent;
+    }
+
+    @Override
+    public void onPostedTweet(Tweet newTweetPost) {
+        // for now do nothing.
+    }
+
+    @OnClick(R.id.button_reply)
+    public void onReplyClicked(View view) {
+        ComposeTweetDialogFragment tweetDialogFragment = ComposeTweetDialogFragment.newInstance(mCurrentUser, mTweet);
+        tweetDialogFragment.show(getSupportFragmentManager(), "fragment_compose_tweet_dialog");
     }
 
     private void setupVideo() {
@@ -104,6 +125,8 @@ public class TweetDetailsActivity extends AppCompatActivity {
         mUserName.setText(user.getUserName());
         mScreenName.setText(user.getScreenName());
         mTweetBody.setText(mTweet.getText());
+        mRetweetButton.setText(Integer.toString(mTweet.getRetweetCount()));
+        mFavoritesButton.setText(Integer.toString(mTweet.getFavouritesCount()));
 
         setupImage();
         setupVideo();
