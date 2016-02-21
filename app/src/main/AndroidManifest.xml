@@ -49,6 +49,8 @@
             android:name=".activities.TweetDetailsActivity"
             android:label="@string/title_activity_tweet_details"
             android:theme="@style/AppTheme.NoActionBar"></activity>
+        <meta-data android:name="com.codepath.apps.simpletweets.utils.GlideConfiguration"
+            android:value="GlideModule"/>
     </application>
 
 </manifest>
