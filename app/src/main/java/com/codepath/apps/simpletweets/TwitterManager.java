@@ -12,6 +12,7 @@ import com.loopj.android.http.TextHttpResponseHandler;
 
 import org.apache.http.Header;
 
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.List;
 
@@ -40,6 +41,9 @@ public class TwitterManager {
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, String responseString) {
+                User currentUser = parseUserFromJSON(responseString);
+                // TODO - save this on a background thread?
+                currentUser.save();
                 listener.onUserReceived(parseUserFromJSON(responseString));
             }
         });
@@ -80,13 +84,17 @@ public class TwitterManager {
     }
 
     private List<Tweet> parseTweetsFromJSON(String response) {
-        Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+        Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).
+                excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC).
+                create();
         Type collectionType = new TypeToken<List<Tweet>>(){}.getType();
         return gson.fromJson(response, collectionType);
     }
 
     private User parseUserFromJSON(String jsonResponse) {
-        Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+        Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).
+                excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC).
+                create();
         Type collectionType = new TypeToken<User>(){}.getType();
         return gson.fromJson(jsonResponse, collectionType);
     }

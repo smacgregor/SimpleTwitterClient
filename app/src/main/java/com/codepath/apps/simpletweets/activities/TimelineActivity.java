@@ -65,7 +65,8 @@ public class TimelineActivity extends AppCompatActivity
 
     @Override
     public void onClick(View v) {
-        composeNewTweet();
+        mTweets.get(0).saveTweet();
+        //composeNewTweet();
     }
 
     @Override
@@ -137,9 +138,9 @@ public class TimelineActivity extends AppCompatActivity
                 if (tweets.size() > 0) {
                     mTweets.addAll(tweets);
                     mTweetsAdapter.notifyItemRangeInserted(mTweetsAdapter.getItemCount(), tweets.size());
-                    mOldestTweetId = tweets.get(tweets.size() - 1).getId();
+                    mOldestTweetId = tweets.get(tweets.size() - 1).getServerId();
                     if (mNewestTweetId == 0) {
-                        mNewestTweetId = tweets.get(0).getId();
+                        mNewestTweetId = tweets.get(0).getServerId();
                     }
                 }
             }

@@ -1,19 +1,23 @@
 package com.codepath.apps.simpletweets.models;
 
-import com.google.gson.annotations.SerializedName;
-
-import org.parceler.Parcel;
+import com.activeandroid.Model;
+import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
 
 /**
  * Created by smacgregor on 2/19/16.
  * Model representing a piece of media inside of a tweet. Currently always a photo
  */
 
-@Parcel
-public class TweetMedia {
-    String type;
-    String mediaUrl;
-    ImageSizes sizes;
+@Table(name = "media")
+public class TweetMedia extends Model {
+
+    @Column String type;
+    @Column String mediaUrl;
+
+    public TweetMedia() {
+        super();
+    }
 
     public String getType() {
         return type;
@@ -21,27 +25,5 @@ public class TweetMedia {
 
     public String getUrl() {
         return mediaUrl;
-    }
-
-    public int getWidth() {
-        return sizes.medium.width;
-    }
-
-    public int getHeight() {
-        return sizes.medium.height;
-    }
-
-    @Parcel
-    public static class ImageSizes {
-        ImageSize medium;
-
-        @Parcel
-        public static class ImageSize {
-            @SerializedName("w")
-            int width;
-
-            @SerializedName("h")
-            int height;
-        }
     }
 }

@@ -1,22 +1,50 @@
 package com.codepath.apps.simpletweets.models;
 
-import org.parceler.Parcel;
+import com.activeandroid.Model;
+import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
+import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
 /**
  * Created by smacgregor on 2/17/16.
  */
-@Parcel
-public class Tweet {
-    User user;
-    String text;
-    int retweetCount;
-    int favouritesCount;
-    String createdAt;
-    String idStr;
+
+@Table(name = "tweets")
+public class Tweet extends Model {
+    @Column(name="User", onUpdate = Column.ForeignKeyAction.CASCADE)
+    public User user;
+
+    @Column String text;
+    @Column int retweetCount;
+    @Column int favouritesCount;
+    @Column String createdAt;
+
+    @Column(name = "remote_id", unique = true, onUniqueConflict = Column.ConflictAction.REPLACE)
+    @SerializedName("id") long serverId;
+
+    @Column(name="Entities", onUpdate = Column.ForeignKeyAction.CASCADE, onDelete = Column.ForeignKeyAction.CASCADE)
     Entities entities;
+
+    //@Column(name="ExtendedEntities", onUpdate = Column.ForeignKeyAction.CASCADE, onDelete = Column.ForeignKeyAction.CASCADE)
     ExtendedEntities extendedEntities;
+
+    public Tweet() {
+        super();
+    }
+
+    public final Long saveTweet() {
+        // onUpdate = Column.ForeignKeyAction.CASCADE is not working for me
+        // so for now - hand save our inner classes when we try to save a tweet
+        if (user != null) {
+            user.save();
+        }
+        if (entities != null) {
+            entities.save();
+        }
+        return super.save();
+    }
 
     public String getText() {
         return text;
@@ -38,8 +66,8 @@ public class Tweet {
         return createdAt;
     }
 
-    public long getId() {
-        return Long.valueOf(idStr);
+    public long getServerId() {
+        return Long.valueOf(serverId);
     }
 
     public TweetMedia getMedia() {
@@ -50,13 +78,21 @@ public class Tweet {
         return (extendedEntities != null && extendedEntities.media != null && extendedEntities.media.size() > 0) ? extendedEntities.media.get(0) : null;
     }
 
-    @Parcel
-    public static class Entities {
+    public static class Entities extends Model {
+        
         List<TweetMedia> media;
+
+        public Entities() {
+            super();
+        }
     }
 
-    @Parcel
-    public static class ExtendedEntities {
+    //@Table(name = "ExtendedEntities")
+    public static class ExtendedEntities extends Model {
         List<TweetVideo> media;
+
+        public ExtendedEntities() {
+            super();
+        }
     }
 }
