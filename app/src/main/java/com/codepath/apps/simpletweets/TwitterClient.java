@@ -1,6 +1,8 @@
 package com.codepath.apps.simpletweets;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 
 import com.codepath.oauth.OAuthBaseClient;
 import com.loopj.android.http.RequestParams;
@@ -8,6 +10,8 @@ import com.loopj.android.http.TextHttpResponseHandler;
 
 import org.scribe.builder.api.Api;
 import org.scribe.builder.api.TwitterApi;
+
+import java.io.IOException;
 
 /*
  * 
@@ -40,19 +44,23 @@ public class TwitterClient extends OAuthBaseClient {
 	 * @param handler
 	 */
 	public void getHomeTimeline(int count, long tweetMaxId, long lastSeenTweetId, TextHttpResponseHandler handler) {
-		String apiUrl = getApiUrl("statuses/home_timeline.json");
-		RequestParams params = new RequestParams();
-		params.put("count", count);
+		if (isOnline() && isNetworkAvailable(context)) {
+			String apiUrl = getApiUrl("statuses/home_timeline.json");
+			RequestParams params = new RequestParams();
+			params.put("count", count);
 
-		if (tweetMaxId > 0) {
-			params.put("max_id", tweetMaxId - 1);
+			if (tweetMaxId > 0) {
+				params.put("max_id", tweetMaxId - 1);
+			}
+
+			if (lastSeenTweetId > 0) {
+				params.put("since_id", lastSeenTweetId);
+			}
+
+			client.get(apiUrl, params, handler);
+		} else {
+			handler.onFailure(0, null, "", null);
 		}
-
-		if (lastSeenTweetId > 0) {
-			params.put("since_id", lastSeenTweetId);
-		}
-
-		client.get(apiUrl, params, handler);
 	}
 
 	/**
@@ -60,8 +68,12 @@ public class TwitterClient extends OAuthBaseClient {
 	 * @param handler
 	 */
 	public void getCurrentUser(TextHttpResponseHandler handler) {
-		String apiUrl = getApiUrl("account/verify_credentials.json");
-		client.get(apiUrl, null, handler);
+		if (isOnline() && isNetworkAvailable(context)) {
+			String apiUrl = getApiUrl("account/verify_credentials.json");
+			client.get(apiUrl, null, handler);
+		} else {
+			handler.onFailure(0, null, "", null);
+		}
 	}
 
 	/**
@@ -100,5 +112,26 @@ public class TwitterClient extends OAuthBaseClient {
 	public void retweet(long tweetId,  TextHttpResponseHandler handler) {
 		String apiUrl = String.format("%s%d.json", getApiUrl("statuses/retweet/"), tweetId);
 		client.post(apiUrl, null, handler);
+	}
+
+	/**
+	 * Report on the availablity of a network connection
+	 * @return
+	 */
+	private boolean isNetworkAvailable(Context context) {
+		ConnectivityManager connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+		return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
+	}
+
+	private boolean isOnline() {
+		Runtime runtime = Runtime.getRuntime();
+		try {
+			Process ipProcess = runtime.exec("/system/bin/ping -c 1 8.8.8.8");
+			int     exitValue = ipProcess.waitFor();
+			return (exitValue == 0);
+		} catch (IOException e)          { e.printStackTrace(); }
+		catch (InterruptedException e) { e.printStackTrace(); }
+		return false;
 	}
 }

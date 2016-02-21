@@ -9,7 +9,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 
 import com.codepath.apps.simpletweets.R;
@@ -151,7 +150,7 @@ public class TimelineActivity extends AppCompatActivity
 
                     @Override
                     public void onTweetsFailed(int statusCode, Throwable throwable) {
-                        Log.d("DEBUG", "failed to get a response from twitter", throwable);
+                        displayAlertMessage(getResources().getString(R.string.error_no_network));
                         mSwipeRefreshLayout.setRefreshing(false);
                     }
                 });
@@ -179,7 +178,7 @@ public class TimelineActivity extends AppCompatActivity
 
             @Override
             public void onTweetsFailed(int statusCode, Throwable throwable) {
-                Log.d("DEBUG", "failed to get a response from twitter", throwable);
+                displayAlertMessage(getResources().getString(R.string.error_no_network));
             }
         });
     }
@@ -192,9 +191,7 @@ public class TimelineActivity extends AppCompatActivity
             }
 
             @Override
-            public void onUserFailed(int statusCode, Throwable throwable) {
-                Log.d("DEBUG", "failed to get the current user", throwable);
-            }
+            public void onUserFailed(int statusCode, Throwable throwable) {}
         });
     }
 

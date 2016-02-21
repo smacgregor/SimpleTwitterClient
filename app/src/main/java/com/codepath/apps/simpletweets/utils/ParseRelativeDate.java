@@ -13,13 +13,14 @@ public class ParseRelativeDate {
     static public String getRelativeTimeAgo(String rawJsonData) {
         String dateFormat = "EEE MMM dd HH:mm:ss ZZZZZ yyyy";
         SimpleDateFormat dateFormatter = new SimpleDateFormat(dateFormat, Locale.ENGLISH);
-        dateFormatter.setLenient(true);
+        //dateFormatter.setLenient(true);
 
         String relativeDate = "";
         try {
             long dateMilliSeconds = dateFormatter.parse(rawJsonData).getTime();
+            long currentTime = System.currentTimeMillis();
             relativeDate = DateUtils.getRelativeTimeSpanString(dateMilliSeconds,
-                    System.currentTimeMillis(),
+                    currentTime,
                     DateUtils.SECOND_IN_MILLIS).toString();
 
         } catch (ParseException ex) {}
