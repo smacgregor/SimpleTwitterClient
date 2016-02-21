@@ -12,7 +12,7 @@ public class Tweet {
     User user;
     String text;
     int retweetCount;
-    int favouritesCount;
+    int favoriteCount;
     String createdAt;
     String idStr;
     Entities entities;
@@ -31,7 +31,7 @@ public class Tweet {
     }
 
     public int getFavouritesCount() {
-        return favouritesCount;
+        return favoriteCount;
     }
 
     public String getCreatedAt() {
