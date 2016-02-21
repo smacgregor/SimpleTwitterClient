@@ -8,4 +8,12 @@
 
     <include layout="@layout/content_tweet_basics"/>
 
+    <LinearLayout
+        android:layout_below="@+id/text_body"
+        android:gravity="center_vertical"
+        android:layout_marginTop="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <include layout="@layout/content_tweet_action_buttons"/>
+    </LinearLayout>
 </RelativeLayout>

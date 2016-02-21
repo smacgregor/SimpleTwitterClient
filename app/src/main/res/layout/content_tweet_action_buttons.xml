@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_weight="1" >
+    </View>
+
+    <ImageButton
+        android:id="@+id/button_reply"
+        android:background="@null"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/btn_reply"/>
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_weight="1" >
+    </View>
+
+    <Button
+        android:id="@+id/button_retweet"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:drawableLeft="@drawable/btn_retweet"
+        android:gravity="left|center_vertical"
+        android:background="@null"
+        android:textColor="@color/style_color_grey_text"/>
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_weight="1" >
+    </View>
+
+
+    <Button
+        android:id="@+id/button_favorite"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:drawableLeft="@drawable/btn_star"
+        android:gravity="left|center_vertical"
+        android:background="@null"
+        android:textColor="@color/style_color_grey_text"/>
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_weight="1" >
+    </View>
+
+</merge>

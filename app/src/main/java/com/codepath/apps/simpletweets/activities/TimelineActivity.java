@@ -3,6 +3,7 @@ package com.codepath.apps.simpletweets.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -64,8 +65,11 @@ public class TimelineActivity extends AppCompatActivity
     }
 
     @Override
+    /**
+     * Floating action bary on click handler
+     */
     public void onClick(View v) {
-        composeNewTweet();
+        composeNewTweet(null);
     }
 
     @Override
@@ -81,16 +85,39 @@ public class TimelineActivity extends AppCompatActivity
 
     @Override
     public void onItemClick(View view, int position) {
-        Intent intent = TweetDetailsActivity.getStartIntent(this, mTweets.get(position));
-        startActivity(intent);
+        Tweet tweet = mTweets.get(position);
+        switch (view.getId()) {
+            case R.id.button_retweet:
+                retweet(tweet);
+                break;
+            case R.id.button_reply:
+                composeNewTweet(tweet);
+                break;
+            case R.id.button_favorite:
+                markTweetAsFavorite(tweet);
+                break;
+            default:
+                openTweet(mTweets.get(position));
+                break;
+        }
     }
 
     /**
      * Open a compose tweet dialog fragment to allow the user to compose a new tweet
+     * @param replyToTweet
      */
-    private void composeNewTweet() {
-        ComposeTweetDialogFragment tweetDialogFragment = ComposeTweetDialogFragment.newInstance(mCurrentUser, null);
+    private void composeNewTweet(Tweet replyToTweet) {
+        ComposeTweetDialogFragment tweetDialogFragment = ComposeTweetDialogFragment.newInstance(mCurrentUser, replyToTweet);
         tweetDialogFragment.show(getSupportFragmentManager(), "fragment_compose_tweet_dialog");
+    }
+
+    /**
+     * Open the details activity for a tweet
+     * @param tweet
+     */
+    private void openTweet(Tweet tweet) {
+        Intent intent = TweetDetailsActivity.getStartIntent(this, tweet, mCurrentUser);
+        startActivity(intent);
     }
 
     private void setupTweetListView() {
@@ -169,5 +196,46 @@ public class TimelineActivity extends AppCompatActivity
                 Log.d("DEBUG", "failed to get the current user", throwable);
             }
         });
+    }
+
+    private void markTweetAsFavorite(final Tweet tweet) {
+        TwitterManager.getInstance().markAsFavorite(tweet.getId(), new TwitterManager.OnTweetUpdatedListener() {
+            @Override
+            public void onTweetUpdated(Tweet updatedTweet) {
+                // this will be easier when tweets are in a local db
+                tweet.setFavoriteCount(updatedTweet.getFavoriteCount());
+                mTweetsAdapter.notifyItemChanged(mTweets.indexOf(tweet));
+            }
+
+            @Override
+            public void onTweetUpdateFailed(int statusCode, Throwable throwable) {
+                displayAlertMessage(getResources().getString(R.string.error_favorite_failed));
+            }
+        });
+    }
+
+    private void retweet(final Tweet tweet) {
+        TwitterManager.getInstance().retweet(tweet.getId(), new TwitterManager.OnTweetUpdatedListener() {
+            @Override
+            public void onTweetUpdated(Tweet updatedTweet) {
+                // this will be easier when tweets are in a local db
+                tweet.setRetweetCount(updatedTweet.getRetweetCount());
+                mTweetsAdapter.notifyItemChanged(mTweets.indexOf(tweet));
+            }
+
+            @Override
+            public void onTweetUpdateFailed(int statusCode, Throwable throwable) {
+                displayAlertMessage(getResources().getString(R.string.error_retweet_failed));
+            }
+        });
+    }
+
+    /**
+     * Alert the user that their internet connection may be down /
+     * the server returned an error
+     */
+    private void displayAlertMessage(final String alertMessage) {
+        Snackbar.make(findViewById(android.R.id.content), alertMessage,
+                Snackbar.LENGTH_LONG).show();
     }
 }
