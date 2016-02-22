@@ -43,4 +43,5 @@ dependencies {
     compile 'jp.wasabeef:recyclerview-animators:2.2.0'
     compile 'com.makeramen:roundedimageview:2.2.1'
     compile 'org.parceler:parceler-api:1.0.4'
+    compile 'jp.wasabeef:recyclerview-animators:2.2.0'
 }

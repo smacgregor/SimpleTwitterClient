@@ -33,30 +33,30 @@
         android:layout_alignParentBottom="true"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
         android:gravity="end">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_toLeftOf="@+id/button_tweet"
-        android:layout_alignParentBottom="true"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="140"
-        android:textAlignment="center"
-        android:id="@+id/text_tweet_count"
-        android:textColor="@color/style_color_grey_text"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_centerInParent="true"
+            android:layout_toLeftOf="@+id/button_tweet"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="140"
+            android:gravity="center"
+            android:id="@+id/text_tweet_count"
+            android:textColor="@color/style_color_grey_text"/>
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/tweet_button"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentBottom="true"
-        android:id="@+id/button_tweet"
-        android:background="@color/style_color_primary"
-        android:textColor="@color/white"
-        android:layout_marginLeft="15dp"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/tweet_button"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:id="@+id/button_tweet"
+            android:background="@color/style_color_primary"
+            android:textColor="@color/white"
+            android:layout_marginLeft="15dp"/>
         </LinearLayout>
 
 </RelativeLayout>
