@@ -8,4 +8,8 @@
     <string name="edit_compose_tweet_hint">What\'s happening?</string>
     <string name="tweet_button">Tweet</string>
     <string name="title_activity_tweet_details">Tweet</string>
+
+    <string name="error_no_network">Please check your internet connections</string>
+    <string name="error_favorite_failed">Unable to mark as a favorite. Please check your internet settings.</string>
+    <string name="error_retweet_failed">Unable to retweet. Please check your internet settings.</string>
 </resources>

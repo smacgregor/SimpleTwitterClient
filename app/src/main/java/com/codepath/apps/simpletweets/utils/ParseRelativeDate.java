@@ -18,8 +18,9 @@ public class ParseRelativeDate {
         String relativeDate = "";
         try {
             long dateMilliSeconds = dateFormatter.parse(rawJsonData).getTime();
+            long currentTime = System.currentTimeMillis();
             relativeDate = DateUtils.getRelativeTimeSpanString(dateMilliSeconds,
-                    System.currentTimeMillis(),
+                    currentTime,
                     DateUtils.SECOND_IN_MILLIS).toString();
 
         } catch (ParseException ex) {}

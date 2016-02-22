@@ -3,12 +3,12 @@ package com.codepath.apps.simpletweets.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 
 import com.codepath.apps.simpletweets.R;
@@ -24,6 +24,7 @@ import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
 
 public class TimelineActivity extends AppCompatActivity
         implements FloatingActionButton.OnClickListener,
@@ -64,33 +65,64 @@ public class TimelineActivity extends AppCompatActivity
     }
 
     @Override
+    /**
+     * Floating action bary on click handler
+     */
     public void onClick(View v) {
-        mTweets.get(0).saveTweet();
-        //composeNewTweet();
+        composeNewTweet(null);
     }
 
     @Override
     public void onPostedTweet(Tweet newTweetPost) {
-
+        if (newTweetPost != null) {
+            mTweets.add(0, newTweetPost);
+            mTweetsAdapter.notifyItemRangeInserted(0, 1);
+            mNewestTweetId = newTweetPost.getId();
+            LinearLayoutManager linearLayoutManager = (LinearLayoutManager) mTweetsView.getLayoutManager();
+            linearLayoutManager.scrollToPositionWithOffset(0, 20);
+        }
     }
 
     @Override
     public void onItemClick(View view, int position) {
-        Intent intent = TweetDetailsActivity.getStartIntent(this, mTweets.get(position));
-        startActivity(intent);
+        Tweet tweet = mTweets.get(position);
+        switch (view.getId()) {
+            case R.id.button_retweet:
+                retweet(tweet);
+                break;
+            case R.id.button_reply:
+                composeNewTweet(tweet);
+                break;
+            case R.id.button_favorite:
+                markTweetAsFavorite(tweet);
+                break;
+            default:
+                openTweet(mTweets.get(position));
+                break;
+        }
     }
 
     /**
      * Open a compose tweet dialog fragment to allow the user to compose a new tweet
+     * @param replyToTweet
      */
-    private void composeNewTweet() {
-        ComposeTweetDialogFragment tweetDialogFragment = ComposeTweetDialogFragment.newInstance(mCurrentUser);
+    private void composeNewTweet(Tweet replyToTweet) {
+        ComposeTweetDialogFragment tweetDialogFragment = ComposeTweetDialogFragment.newInstance(mCurrentUser, replyToTweet);
         tweetDialogFragment.show(getSupportFragmentManager(), "fragment_compose_tweet_dialog");
+    }
+
+    /**
+     * Open the details activity for a tweet
+     * @param tweet
+     */
+    private void openTweet(Tweet tweet) {
+        Intent intent = TweetDetailsActivity.getStartIntent(this, tweet, mCurrentUser);
+        startActivity(intent);
     }
 
     private void setupTweetListView() {
         mTweetsAdapter = new TweetsAdapter(mTweets);
-        mTweetsView.setAdapter(mTweetsAdapter);
+        mTweetsView.setAdapter(new AlphaInAnimationAdapter(mTweetsAdapter));
         mTweetsAdapter.setOnItemClickListener(this);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         mTweetsView.setLayoutManager(layoutManager);
@@ -106,7 +138,7 @@ public class TimelineActivity extends AppCompatActivity
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                TwitterManager.getInstance().refreshTweetsForTimeline(mNewestTweetId, new TwitterManager.OnTimelineTweetsReceivedListener() {
+                TwitterManager.getInstance().fetchTimelineTweets(0, mNewestTweetId, new TwitterManager.OnTimelineTweetsReceivedListener() {
                     @Override
                     public void onTweetsReceived(List<Tweet> tweets) {
                         if (tweets.size() > 0) {
@@ -119,7 +151,7 @@ public class TimelineActivity extends AppCompatActivity
 
                     @Override
                     public void onTweetsFailed(int statusCode, Throwable throwable) {
-                        Log.d("DEBUG", "failed to get a response from twitter", throwable);
+                        displayAlertMessage(getResources().getString(R.string.error_no_network));
                         mSwipeRefreshLayout.setRefreshing(false);
                     }
                 });
@@ -132,7 +164,7 @@ public class TimelineActivity extends AppCompatActivity
      * Fetch the next batch of tweets older than mOldestTweetId.
      */
     private void fetchTweetsForTimeline() {
-        TwitterManager.getInstance().fetchTweetsForTimeline(mOldestTweetId, new TwitterManager.OnTimelineTweetsReceivedListener() {
+        TwitterManager.getInstance().fetchTimelineTweets(mOldestTweetId, 0, new TwitterManager.OnTimelineTweetsReceivedListener() {
             @Override
             public void onTweetsReceived(List<Tweet> tweets) {
                 if (tweets.size() > 0) {
@@ -147,7 +179,7 @@ public class TimelineActivity extends AppCompatActivity
 
             @Override
             public void onTweetsFailed(int statusCode, Throwable throwable) {
-                Log.d("DEBUG", "failed to get a response from twitter", throwable);
+                displayAlertMessage(getResources().getString(R.string.error_no_network));
             }
         });
     }
@@ -160,358 +192,48 @@ public class TimelineActivity extends AppCompatActivity
             }
 
             @Override
-            public void onUserFailed(int statusCode, Throwable throwable) {
-                Log.d("DEBUG", "failed to get the current user", throwable);
+            public void onUserFailed(int statusCode, Throwable throwable) {}
+        });
+    }
+
+    private void markTweetAsFavorite(final Tweet tweet) {
+        TwitterManager.getInstance().markAsFavorite(tweet.getId(), new TwitterManager.OnTweetUpdatedListener() {
+            @Override
+            public void onTweetUpdated(Tweet updatedTweet) {
+                // this will be easier when tweets are in a local db
+                tweet.setFavoriteCount(updatedTweet.getFavoriteCount());
+                mTweetsAdapter.notifyItemChanged(mTweets.indexOf(tweet));
+            }
+
+            @Override
+            public void onTweetUpdateFailed(int statusCode, Throwable throwable) {
+                displayAlertMessage(getResources().getString(R.string.error_favorite_failed));
             }
         });
     }
 
-    private void populateTimeline() {
+    private void retweet(final Tweet tweet) {
+        TwitterManager.getInstance().retweet(tweet.getId(), new TwitterManager.OnTweetUpdatedListener() {
+            @Override
+            public void onTweetUpdated(Tweet updatedTweet) {
+                // this will be easier when tweets are in a local db
+                tweet.setRetweetCount(updatedTweet.getRetweetCount());
+                mTweetsAdapter.notifyItemChanged(mTweets.indexOf(tweet));
+            }
 
-        String cachedResponse = "[\n" +
-                "  {\n" +
-                "    \"coordinates\": null,\n" +
-                "    \"truncated\": false,\n" +
-                "    \"created_at\": \"Tue Aug 28 21:16:23 +0000 2012\",\n" +
-                "    \"favorited\": false,\n" +
-                "    \"id_str\": \"240558470661799936\",\n" +
-                "    \"in_reply_to_user_id_str\": null,\n" +
-                "    \"entities\": {\n" +
-                "      \"urls\": [\n" +
-                " \n" +
-                "      ],\n" +
-                "      \"hashtags\": [\n" +
-                " \n" +
-                "      ],\n" +
-                "      \"user_mentions\": [\n" +
-                " \n" +
-                "      ]\n" +
-                "    },\n" +
-                "    \"text\": \"just another test\",\n" +
-                "    \"contributors\": null,\n" +
-                "    \"id\": 240558470661799936,\n" +
-                "    \"retweet_count\": 0,\n" +
-                "    \"in_reply_to_status_id_str\": null,\n" +
-                "    \"geo\": null,\n" +
-                "    \"retweeted\": false,\n" +
-                "    \"in_reply_to_user_id\": null,\n" +
-                "    \"place\": null,\n" +
-                "    \"source\": \"l\",\n" +
-                "    \"user\": {\n" +
-                "      \"name\": \"OAuth Dancer\",\n" +
-                "      \"profile_sidebar_fill_color\": \"DDEEF6\",\n" +
-                "      \"profile_background_tile\": true,\n" +
-                "      \"profile_sidebar_border_color\": \"C0DEED\",\n" +
-                "      \"profile_image_url\": \"http://a0.twimg.com/profile_images/730275945/oauth-dancer_normal.jpg\",\n" +
-                "      \"created_at\": \"Wed Mar 03 19:37:35 +0000 2010\",\n" +
-                "      \"location\": \"San Francisco, CA\",\n" +
-                "      \"follow_request_sent\": false,\n" +
-                "      \"id_str\": \"119476949\",\n" +
-                "      \"is_translator\": false,\n" +
-                "      \"profile_link_color\": \"0084B4\",\n" +
-                "      \"entities\": {\n" +
-                "        \"url\": {\n" +
-                "          \"urls\": [\n" +
-                "            {\n" +
-                "              \"expanded_url\": null,\n" +
-                "              \"url\": \"http://bit.ly/oauth-dancer\",\n" +
-                "              \"indices\": [\n" +
-                "                0,\n" +
-                "                26\n" +
-                "              ],\n" +
-                "              \"display_url\": null\n" +
-                "            }\n" +
-                "          ]\n" +
-                "        },\n" +
-                "        \"description\": null\n" +
-                "      },\n" +
-                "      \"default_profile\": false,\n" +
-                "      \"url\": \"http://bit.ly/oauth-dancer\",\n" +
-                "      \"contributors_enabled\": false,\n" +
-                "      \"favourites_count\": 7,\n" +
-                "      \"utc_offset\": null,\n" +
-                "      \"profile_image_url_https\": \"https://si0.twimg.com/profile_images/730275945/oauth-dancer_normal.jpg\",\n" +
-                "      \"id\": 119476949,\n" +
-                "      \"listed_count\": 1,\n" +
-                "      \"profile_use_background_image\": true,\n" +
-                "      \"profile_text_color\": \"333333\",\n" +
-                "      \"followers_count\": 28,\n" +
-                "      \"lang\": \"en\",\n" +
-                "      \"protected\": false,\n" +
-                "      \"geo_enabled\": true,\n" +
-                "      \"notifications\": false,\n" +
-                "      \"description\": \"\",\n" +
-                "      \"profile_background_color\": \"C0DEED\",\n" +
-                "      \"verified\": false,\n" +
-                "      \"time_zone\": null,\n" +
-                "      \"profile_background_image_url_https\": \"https://si0.twimg.com/profile_background_images/80151733/oauth-dance.png\",\n" +
-                "      \"statuses_count\": 166,\n" +
-                "      \"profile_background_image_url\": \"http://a0.twimg.com/profile_background_images/80151733/oauth-dance.png\",\n" +
-                "      \"default_profile_image\": false,\n" +
-                "      \"friends_count\": 14,\n" +
-                "      \"following\": false,\n" +
-                "      \"show_all_inline_media\": false,\n" +
-                "      \"screen_name\": \"oauth_dancer\"\n" +
-                "    },\n" +
-                "    \"in_reply_to_screen_name\": null,\n" +
-                "    \"in_reply_to_status_id\": null\n" +
-                "  },\n" +
-                "  {\n" +
-                "    \"coordinates\": {\n" +
-                "      \"coordinates\": [\n" +
-                "        -122.25831,\n" +
-                "        37.871609\n" +
-                "      ],\n" +
-                "      \"type\": \"Point\"\n" +
-                "    },\n" +
-                "    \"truncated\": false,\n" +
-                "    \"created_at\": \"Tue Aug 28 21:08:15 +0000 2012\",\n" +
-                "    \"favorited\": false,\n" +
-                "    \"id_str\": \"240556426106372096\",\n" +
-                "    \"in_reply_to_user_id_str\": null,\n" +
-                "    \"entities\": {\n" +
-                "      \"urls\": [\n" +
-                "        {\n" +
-                "          \"expanded_url\": \"http://blogs.ischool.berkeley.edu/i290-abdt-s12/\",\n" +
-                "          \"url\": \"http://t.co/bfj7zkDJ\",\n" +
-                "          \"indices\": [\n" +
-                "            79,\n" +
-                "            99\n" +
-                "          ],\n" +
-                "          \"display_url\": \"blogs.ischool.berkeley.edu/i290-abdt-s12/\"\n" +
-                "        }\n" +
-                "      ],\n" +
-                "      \"hashtags\": [\n" +
-                " \n" +
-                "      ],\n" +
-                "      \"user_mentions\": [\n" +
-                "        {\n" +
-                "          \"name\": \"Cal\",\n" +
-                "          \"id_str\": \"17445752\",\n" +
-                "          \"id\": 17445752,\n" +
-                "          \"indices\": [\n" +
-                "            60,\n" +
-                "            64\n" +
-                "          ],\n" +
-                "          \"screen_name\": \"Cal\"\n" +
-                "        },\n" +
-                "        {\n" +
-                "          \"name\": \"Othman Laraki\",\n" +
-                "          \"id_str\": \"20495814\",\n" +
-                "          \"id\": 20495814,\n" +
-                "          \"indices\": [\n" +
-                "            70,\n" +
-                "            77\n" +
-                "          ],\n" +
-                "          \"screen_name\": \"othman\"\n" +
-                "        }\n" +
-                "      ]\n" +
-                "    },\n" +
-                "    \"text\": \"lecturing at the \\\"analyzing big data with twitter\\\" class at @cal with @othman  http://t.co/bfj7zkDJ\",\n" +
-                "    \"contributors\": null,\n" +
-                "    \"id\": 240556426106372096,\n" +
-                "    \"retweet_count\": 3,\n" +
-                "    \"in_reply_to_status_id_str\": null,\n" +
-                "    \"geo\": {\n" +
-                "      \"coordinates\": [\n" +
-                "        37.871609,\n" +
-                "        -122.25831\n" +
-                "      ],\n" +
-                "      \"type\": \"Point\"\n" +
-                "    },\n" +
-                "    \"retweeted\": false,\n" +
-                "    \"possibly_sensitive\": false,\n" +
-                "    \"in_reply_to_user_id\": null,\n" +
-                "    \"place\": {\n" +
-                "      \"name\": \"Berkeley\",\n" +
-                "      \"country_code\": \"US\",\n" +
-                "      \"country\": \"United States\",\n" +
-                "      \"attributes\": {\n" +
-                "      },\n" +
-                "      \"url\": \"http://api.twitter.com/1/geo/id/5ef5b7f391e30aff.json\",\n" +
-                "      \"id\": \"5ef5b7f391e30aff\",\n" +
-                "      \"bounding_box\": {\n" +
-                "        \"coordinates\": [\n" +
-                "          [\n" +
-                "            [\n" +
-                "              -122.367781,\n" +
-                "              37.835727\n" +
-                "            ],\n" +
-                "            [\n" +
-                "              -122.234185,\n" +
-                "              37.835727\n" +
-                "            ],\n" +
-                "            [\n" +
-                "              -122.234185,\n" +
-                "              37.905824\n" +
-                "            ],\n" +
-                "            [\n" +
-                "              -122.367781,\n" +
-                "              37.905824\n" +
-                "            ]\n" +
-                "          ]\n" +
-                "        ],\n" +
-                "        \"type\": \"Polygon\"\n" +
-                "      },\n" +
-                "      \"full_name\": \"Berkeley, CA\",\n" +
-                "      \"place_type\": \"city\"\n" +
-                "    },\n" +
-                "    \"source\": \"s\",\n" +
-                "    \"user\": {\n" +
-                "      \"name\": \"Raffi Krikorian\",\n" +
-                "      \"profile_sidebar_fill_color\": \"DDEEF6\",\n" +
-                "      \"profile_background_tile\": false,\n" +
-                "      \"profile_sidebar_border_color\": \"C0DEED\",\n" +
-                "      \"profile_image_url\": \"http://a0.twimg.com/profile_images/1270234259/raffi-headshot-casual_normal.png\",\n" +
-                "      \"created_at\": \"Sun Aug 19 14:24:06 +0000 2007\",\n" +
-                "      \"location\": \"San Francisco, California\",\n" +
-                "      \"follow_request_sent\": false,\n" +
-                "      \"id_str\": \"8285392\",\n" +
-                "      \"is_translator\": false,\n" +
-                "      \"profile_link_color\": \"0084B4\",\n" +
-                "      \"entities\": {\n" +
-                "        \"url\": {\n" +
-                "          \"urls\": [\n" +
-                "            {\n" +
-                "              \"expanded_url\": \"http://about.me/raffi.krikorian\",\n" +
-                "              \"url\": \"http://t.co/eNmnM6q\",\n" +
-                "              \"indices\": [\n" +
-                "                0,\n" +
-                "                19\n" +
-                "              ],\n" +
-                "              \"display_url\": \"about.me/raffi.krikorian\"\n" +
-                "            }\n" +
-                "          ]\n" +
-                "        },\n" +
-                "        \"description\": {\n" +
-                "          \"urls\": [\n" +
-                " \n" +
-                "          ]\n" +
-                "        }\n" +
-                "      },\n" +
-                "      \"default_profile\": true,\n" +
-                "      \"url\": \"http://t.co/eNmnM6q\",\n" +
-                "      \"contributors_enabled\": false,\n" +
-                "      \"favourites_count\": 724,\n" +
-                "      \"utc_offset\": -28800,\n" +
-                "      \"profile_image_url_https\": \"https://si0.twimg.com/profile_images/1270234259/raffi-headshot-casual_normal.png\",\n" +
-                "      \"id\": 8285392,\n" +
-                "      \"listed_count\": 619,\n" +
-                "      \"profile_use_background_image\": true,\n" +
-                "      \"profile_text_color\": \"333333\",\n" +
-                "      \"followers_count\": 18752,\n" +
-                "      \"lang\": \"en\",\n" +
-                "      \"protected\": false,\n" +
-                "      \"geo_enabled\": true,\n" +
-                "      \"notifications\": false,\n" +
-                "      \"description\": \"Director of @twittereng's Platform Services. I break things.\",\n" +
-                "      \"profile_background_color\": \"C0DEED\",\n" +
-                "      \"verified\": false,\n" +
-                "      \"time_zone\": \"Pacific Time (US & Canada)\",\n" +
-                "      \"profile_background_image_url_https\": \"https://si0.twimg.com/images/themes/theme1/bg.png\",\n" +
-                "      \"statuses_count\": 5007,\n" +
-                "      \"profile_background_image_url\": \"http://a0.twimg.com/images/themes/theme1/bg.png\",\n" +
-                "      \"default_profile_image\": false,\n" +
-                "      \"friends_count\": 701,\n" +
-                "      \"following\": true,\n" +
-                "      \"show_all_inline_media\": true,\n" +
-                "      \"screen_name\": \"raffi\"\n" +
-                "    },\n" +
-                "    \"in_reply_to_screen_name\": null,\n" +
-                "    \"in_reply_to_status_id\": null\n" +
-                "  },\n" +
-                "  {\n" +
-                "    \"coordinates\": null,\n" +
-                "    \"truncated\": false,\n" +
-                "    \"created_at\": \"Tue Aug 28 19:59:34 +0000 2012\",\n" +
-                "    \"favorited\": false,\n" +
-                "    \"id_str\": \"240539141056638977\",\n" +
-                "    \"in_reply_to_user_id_str\": null,\n" +
-                "    \"entities\": {\n" +
-                "      \"urls\": [\n" +
-                " \n" +
-                "      ],\n" +
-                "      \"hashtags\": [\n" +
-                " \n" +
-                "      ],\n" +
-                "      \"user_mentions\": [\n" +
-                " \n" +
-                "      ]\n" +
-                "    },\n" +
-                "    \"text\": \"You'd be right more often if you thought you were wrong.\",\n" +
-                "    \"contributors\": null,\n" +
-                "    \"id\": 240539141056638977,\n" +
-                "    \"retweet_count\": 1,\n" +
-                "    \"in_reply_to_status_id_str\": null,\n" +
-                "    \"geo\": null,\n" +
-                "    \"retweeted\": false,\n" +
-                "    \"in_reply_to_user_id\": null,\n" +
-                "    \"place\": null,\n" +
-                "    \"source\": \"web\",\n" +
-                "    \"user\": {\n" +
-                "      \"name\": \"Taylor Singletary\",\n" +
-                "      \"profile_sidebar_fill_color\": \"FBFBFB\",\n" +
-                "      \"profile_background_tile\": true,\n" +
-                "      \"profile_sidebar_border_color\": \"000000\",\n" +
-                "      \"profile_image_url\": \"http://a0.twimg.com/profile_images/2546730059/f6a8zq58mg1hn0ha8vie_normal.jpeg\",\n" +
-                "      \"created_at\": \"Wed Mar 07 22:23:19 +0000 2007\",\n" +
-                "      \"location\": \"San Francisco, CA\",\n" +
-                "      \"follow_request_sent\": false,\n" +
-                "      \"id_str\": \"819797\",\n" +
-                "      \"is_translator\": false,\n" +
-                "      \"profile_link_color\": \"c71818\",\n" +
-                "      \"entities\": {\n" +
-                "        \"url\": {\n" +
-                "          \"urls\": [\n" +
-                "            {\n" +
-                "              \"expanded_url\": \"http://www.rebelmouse.com/episod/\",\n" +
-                "              \"url\": \"http://t.co/Lxw7upbN\",\n" +
-                "              \"indices\": [\n" +
-                "                0,\n" +
-                "                20\n" +
-                "              ],\n" +
-                "              \"display_url\": \"rebelmouse.com/episod/\"\n" +
-                "            }\n" +
-                "          ]\n" +
-                "        },\n" +
-                "        \"description\": {\n" +
-                "          \"urls\": [\n" +
-                " \n" +
-                "          ]\n" +
-                "        }\n" +
-                "      },\n" +
-                "      \"default_profile\": false,\n" +
-                "      \"url\": \"http://t.co/Lxw7upbN\",\n" +
-                "      \"contributors_enabled\": false,\n" +
-                "      \"favourites_count\": 15990,\n" +
-                "      \"utc_offset\": -28800,\n" +
-                "      \"profile_image_url_https\": \"https://si0.twimg.com/profile_images/2546730059/f6a8zq58mg1hn0ha8vie_normal.jpeg\",\n" +
-                "      \"id\": 819797,\n" +
-                "      \"listed_count\": 340,\n" +
-                "      \"profile_use_background_image\": true,\n" +
-                "      \"profile_text_color\": \"D20909\",\n" +
-                "      \"followers_count\": 7126,\n" +
-                "      \"lang\": \"en\",\n" +
-                "      \"protected\": false,\n" +
-                "      \"geo_enabled\": true,\n" +
-                "      \"notifications\": false,\n" +
-                "      \"description\": \"Reality Technician, Twitter API team, synthesizer enthusiast; a most excellent adventure in timelines. I know it's hard to believe in something you can't see.\",\n" +
-                "      \"profile_background_color\": \"000000\",\n" +
-                "      \"verified\": false,\n" +
-                "      \"time_zone\": \"Pacific Time (US & Canada)\",\n" +
-                "      \"profile_background_image_url_https\": \"https://si0.twimg.com/profile_background_images/643655842/hzfv12wini4q60zzrthg.png\",\n" +
-                "      \"statuses_count\": 18076,\n" +
-                "      \"profile_background_image_url\": \"http://a0.twimg.com/profile_background_images/643655842/hzfv12wini4q60zzrthg.png\",\n" +
-                "      \"default_profile_image\": false,\n" +
-                "      \"friends_count\": 5444,\n" +
-                "      \"following\": true,\n" +
-                "      \"show_all_inline_media\": true,\n" +
-                "      \"screen_name\": \"episod\"\n" +
-                "    },\n" +
-                "    \"in_reply_to_screen_name\": null,\n" +
-                "    \"in_reply_to_status_id\": null\n" +
-                "  }\n" +
-                "]";
+            @Override
+            public void onTweetUpdateFailed(int statusCode, Throwable throwable) {
+                displayAlertMessage(getResources().getString(R.string.error_retweet_failed));
+            }
+        });
     }
 
+    /**
+     * Alert the user that their internet connection may be down /
+     * the server returned an error
+     */
+    private void displayAlertMessage(final String alertMessage) {
+        Snackbar.make(findViewById(android.R.id.content), alertMessage,
+                Snackbar.LENGTH_LONG).show();
+    }
 }

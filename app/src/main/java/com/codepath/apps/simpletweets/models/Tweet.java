@@ -18,7 +18,7 @@ public class Tweet extends Model {
 
     @Column String text;
     @Column int retweetCount;
-    @Column int favouritesCount;
+    @Column int favoriteCount;
     @Column String createdAt;
 
     @Column(name = "remote_id", unique = true, onUniqueConflict = Column.ConflictAction.REPLACE)
@@ -58,8 +58,16 @@ public class Tweet extends Model {
         return retweetCount;
     }
 
-    public int getFavouritesCount() {
-        return favouritesCount;
+    public void setRetweetCount(int retweetCount) {
+        this.retweetCount = retweetCount;
+    }
+
+    public int getFavoriteCount() {
+        return favoriteCount;
+    }
+
+    public void setFavoriteCount(int favoriteCount) {
+        this.favoriteCount = favoriteCount;
     }
 
     public String getCreatedAt() {
