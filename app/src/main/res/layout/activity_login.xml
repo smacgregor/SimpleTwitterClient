@@ -6,14 +6,17 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:background="@color/style_color_primary"
     tools:context=".activities.LoginActivity" >
 
     <Button
+        android:background="@color/style_color_grey_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_margin="20dp"
         android:onClick="loginToRest"
+        android:layout_centerVertical="true"
         android:text="@string/login_label" />
 
 </RelativeLayout>
