@@ -24,6 +24,7 @@ import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
 
 public class TimelineActivity extends AppCompatActivity
         implements FloatingActionButton.OnClickListener,
@@ -121,7 +122,7 @@ public class TimelineActivity extends AppCompatActivity
 
     private void setupTweetListView() {
         mTweetsAdapter = new TweetsAdapter(mTweets);
-        mTweetsView.setAdapter(mTweetsAdapter);
+        mTweetsView.setAdapter(new AlphaInAnimationAdapter(mTweetsAdapter));
         mTweetsAdapter.setOnItemClickListener(this);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         mTweetsView.setLayoutManager(layoutManager);
