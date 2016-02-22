@@ -19,6 +19,10 @@ public class TweetMedia extends Model {
         super();
     }
 
+    public final Long cascadeSave() {
+        return save();
+    }
+
     public String getType() {
         return type;
     }

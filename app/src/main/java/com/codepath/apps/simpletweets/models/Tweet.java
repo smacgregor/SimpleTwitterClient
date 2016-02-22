@@ -13,7 +13,7 @@ import java.util.List;
 
 @Table(name = "tweets")
 public class Tweet extends Model {
-    @Column(name="User", onUpdate = Column.ForeignKeyAction.CASCADE)
+    @Column(name="User", onUpdate = Column.ForeignKeyAction.CASCADE, onDelete = Column.ForeignKeyAction.CASCADE)
     public User user;
 
     @Column String text;
@@ -34,14 +34,14 @@ public class Tweet extends Model {
         super();
     }
 
-    public final Long saveTweet() {
+    public final Long cascadeSave() {
         // onUpdate = Column.ForeignKeyAction.CASCADE is not working for me
         // so for now - hand save our inner classes when we try to save a tweet
         if (user != null) {
             user.save();
         }
         if (entities != null) {
-            entities.save();
+            entities.cascadeSave();
         }
         return super.save();
     }
@@ -92,6 +92,13 @@ public class Tweet extends Model {
 
         public Entities() {
             super();
+        }
+
+        public final Long cascadeSave() {
+            for (TweetMedia med: media) {
+                med.cascadeSave();
+            }
+            return save();
         }
     }
 
