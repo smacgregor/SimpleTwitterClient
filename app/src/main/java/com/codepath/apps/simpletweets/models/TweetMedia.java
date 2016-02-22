@@ -24,7 +24,7 @@ public class TweetMedia extends Model {
         mEntities = entities;
     }
 
-    public final Long cascadeSave() {
+    public Long cascadeSave() {
         return save();
     }
 

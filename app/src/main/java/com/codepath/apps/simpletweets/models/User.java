@@ -45,6 +45,6 @@ public class User extends Model {
     }
 
     public static User findUser(long serverId) {
-        return new Select().from(Tweet.class).where("remote_id = ?", serverId).executeSingle();
+        return new Select().from(User.class).where("remote_id = ?", serverId).executeSingle();
     }
 }

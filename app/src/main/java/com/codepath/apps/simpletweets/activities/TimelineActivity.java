@@ -107,10 +107,8 @@ public class TimelineActivity extends AppCompatActivity
      * @param replyToTweet
      */
     private void composeNewTweet(Tweet replyToTweet) {
-        Tweet t = mTweets.get(0);
-        t.cascadeSave();
-        //ComposeTweetDialogFragment tweetDialogFragment = ComposeTweetDialogFragment.newInstance(mCurrentUser, replyToTweet);
-        //tweetDialogFragment.show(getSupportFragmentManager(), "fragment_compose_tweet_dialog");
+        ComposeTweetDialogFragment tweetDialogFragment = ComposeTweetDialogFragment.newInstance(mCurrentUser, replyToTweet);
+        tweetDialogFragment.show(getSupportFragmentManager(), "fragment_compose_tweet_dialog");
     }
 
     /**

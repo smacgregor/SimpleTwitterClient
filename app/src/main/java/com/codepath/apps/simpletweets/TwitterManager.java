@@ -75,12 +75,12 @@ public class TwitterManager {
                 queryResults = new Select().
                         from(Tweet.class).
                         where("remote_id < ?", oldestTweetId).
-                        orderBy("id DESC").
+                        orderBy("remote_id DESC").
                         limit(PAGE_SIZE).execute();
             } else {
                 queryResults = new Select().
                         from(Tweet.class).
-                        orderBy("id DESC").
+                        orderBy("remote_id DESC").
                         limit(PAGE_SIZE).execute();
             }
             listener.onTweetsReceived(queryResults);

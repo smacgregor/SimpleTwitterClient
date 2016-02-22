@@ -14,7 +14,7 @@ import java.util.List;
 
 @Table(name = "tweets")
 public class Tweet extends Model {
-    @Column(name="User", onUpdate = Column.ForeignKeyAction.CASCADE, onDelete = Column.ForeignKeyAction.CASCADE)
+    @Column(name="User")
     public User user;
 
     @Column String text;
@@ -22,13 +22,13 @@ public class Tweet extends Model {
     @Column int favoriteCount;
     @Column String createdAt;
 
-    @Column(name = "remote_id", unique = true, onUniqueConflict = Column.ConflictAction.REPLACE)
+    @Column(name = "remote_id", unique = true, index = true, onUniqueConflict = Column.ConflictAction.REPLACE)
     @SerializedName("id") long serverId;
 
     @Column(name="Entities", onUpdate = Column.ForeignKeyAction.CASCADE, onDelete = Column.ForeignKeyAction.CASCADE)
     Entities entities;
 
-    //@Column(name="ExtendedEntities", onUpdate = Column.ForeignKeyAction.CASCADE, onDelete = Column.ForeignKeyAction.CASCADE)
+    @Column(name="ExtendedEntities", onUpdate = Column.ForeignKeyAction.CASCADE, onDelete = Column.ForeignKeyAction.CASCADE)
     ExtendedEntities extendedEntities;
 
     public Tweet() {
@@ -43,7 +43,11 @@ public class Tweet extends Model {
         }
 
         if (entities != null) {
-            entities.cascadeSave(this);
+            entities.cascadeSave();
+        }
+
+        if (extendedEntities != null) {
+            extendedEntities.cascadeSave();
         }
 
         return super.save();
@@ -87,9 +91,14 @@ public class Tweet extends Model {
     }
 
     public TweetVideo getVideo() {
-        return (extendedEntities != null && extendedEntities.media != null && extendedEntities.media.size() > 0) ? extendedEntities.media.get(0) : null;
+        List<TweetVideo> videos = null;
+        if (extendedEntities != null) {
+            extendedEntities.getExtendedMedia();
+        }
+        return (videos != null &&  videos.size() > 0) ? videos.get(0) : null;
     }
 
+    @Table(name = "Entities")
     public static class Entities extends Model {
         
         List<TweetMedia> media;
@@ -99,15 +108,10 @@ public class Tweet extends Model {
         }
 
         public List<TweetMedia> getMedia() {
-            // if we haven't hydrated the model from the database yet
-            if (media == null) {
-               return getMany(TweetMedia.class, "Entities");
-            } else {
-                return media;
-            }
+            return getMany(TweetMedia.class, "Entities");
         }
 
-        public final Long cascadeSave(Tweet tweet) {
+        public final Long cascadeSave() {
             long retVal = save();
             if (media != null && media.size() > 0) {
                 for (TweetMedia med : media) {
@@ -119,12 +123,27 @@ public class Tweet extends Model {
         }
     }
 
-    //@Table(name = "ExtendedEntities")
+    @Table(name = "ExtendedEntities")
     public static class ExtendedEntities extends Model {
         List<TweetVideo> media;
 
         public ExtendedEntities() {
             super();
+        }
+
+        public List<TweetVideo> getExtendedMedia() {
+            return getMany(TweetVideo.class, "ExtendedEntities");
+        }
+
+        public final Long cascadeSave() {
+            long retVal = save();
+            if (media != null && media.size() > 0) {
+                for (TweetVideo med : media) {
+                    med.setExtendedEntities(this);
+                    med.cascadeSave();
+                }
+            }
+            return retVal;
         }
     }
 

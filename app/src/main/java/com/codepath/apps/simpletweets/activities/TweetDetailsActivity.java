@@ -56,6 +56,7 @@ public class TweetDetailsActivity extends AppCompatActivity implements
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        long f = getIntent().getLongExtra(TweetDetailsActivity.EXTRA_TWEET, 0);
         mTweet = Tweet.findTweet(getIntent().getLongExtra(TweetDetailsActivity.EXTRA_TWEET, 0));
         mCurrentUser = User.findUser(getIntent().getLongExtra(TweetDetailsActivity.EXTRA_CURRENT_USER, 0));
         setupTweet();
