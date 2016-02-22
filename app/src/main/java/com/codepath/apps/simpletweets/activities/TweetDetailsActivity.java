@@ -24,8 +24,6 @@ import com.codepath.apps.simpletweets.utils.LinkifiedTextView;
 import com.codepath.apps.simpletweets.utils.TweetHelpers;
 import com.makeramen.roundedimageview.RoundedImageView;
 
-import org.parceler.Parcels;
-
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -58,8 +56,8 @@ public class TweetDetailsActivity extends AppCompatActivity implements
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        mTweet = Parcels.unwrap(getIntent().getParcelableExtra(TweetDetailsActivity.EXTRA_TWEET));
-        mCurrentUser = Parcels.unwrap(getIntent().getParcelableExtra(TweetDetailsActivity.EXTRA_CURRENT_USER));
+        mTweet = Tweet.findTweet(getIntent().getLongExtra(TweetDetailsActivity.EXTRA_TWEET, 0));
+        mCurrentUser = User.findUser(getIntent().getLongExtra(TweetDetailsActivity.EXTRA_CURRENT_USER, 0));
         setupTweet();
     }
 
@@ -75,8 +73,8 @@ public class TweetDetailsActivity extends AppCompatActivity implements
 
     public static Intent getStartIntent(Context context, Tweet tweet, User currentUser) {
         Intent intent= new Intent(context, TweetDetailsActivity.class);
-        intent.putExtra(TweetDetailsActivity.EXTRA_TWEET, Parcels.wrap(tweet));
-        intent.putExtra(TweetDetailsActivity.EXTRA_CURRENT_USER, Parcels.wrap(currentUser));
+        intent.putExtra(TweetDetailsActivity.EXTRA_TWEET, tweet.getServerId());
+        intent.putExtra(TweetDetailsActivity.EXTRA_CURRENT_USER, currentUser.getServerId());
         return intent;
     }
 
@@ -145,7 +143,7 @@ public class TweetDetailsActivity extends AppCompatActivity implements
     }
 
     private void markTweetAsFavorite() {
-        TwitterManager.getInstance().markAsFavorite(mTweet.getId(), new TwitterManager.OnTweetUpdatedListener() {
+        TwitterManager.getInstance().markAsFavorite(mTweet.getServerId(), new TwitterManager.OnTweetUpdatedListener() {
             @Override
             public void onTweetUpdated(Tweet updatedTweet) {
                 mTweet.setFavoriteCount(updatedTweet.getFavoriteCount());
@@ -160,7 +158,7 @@ public class TweetDetailsActivity extends AppCompatActivity implements
     }
 
     private void retweet() {
-        TwitterManager.getInstance().retweet(mTweet.getId(), new TwitterManager.OnTweetUpdatedListener() {
+        TwitterManager.getInstance().retweet(mTweet.getServerId(), new TwitterManager.OnTweetUpdatedListener() {
             @Override
             public void onTweetUpdated(Tweet updatedTweet) {
                 // this will be easier when tweets are in a local db

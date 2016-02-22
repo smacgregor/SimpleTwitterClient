@@ -3,6 +3,7 @@ package com.codepath.apps.simpletweets.models;
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
+import com.activeandroid.query.Select;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
@@ -40,9 +41,11 @@ public class Tweet extends Model {
         if (user != null) {
             user.save();
         }
+
         if (entities != null) {
-            entities.cascadeSave();
+            entities.cascadeSave(this);
         }
+
         return super.save();
     }
 
@@ -79,7 +82,8 @@ public class Tweet extends Model {
     }
 
     public TweetMedia getMedia() {
-        return (entities.media != null && entities.media.size() > 0) ? entities.media.get(0) : null;
+        List<TweetMedia> media = entities.getMedia();
+        return (media != null && media.size() > 0) ? media.get(0) : null;
     }
 
     public TweetVideo getVideo() {
@@ -94,11 +98,24 @@ public class Tweet extends Model {
             super();
         }
 
-        public final Long cascadeSave() {
-            for (TweetMedia med: media) {
-                med.cascadeSave();
+        public List<TweetMedia> getMedia() {
+            // if we haven't hydrated the model from the database yet
+            if (media == null) {
+               return getMany(TweetMedia.class, "Entities");
+            } else {
+                return media;
             }
-            return save();
+        }
+
+        public final Long cascadeSave(Tweet tweet) {
+            long retVal = save();
+            if (media != null && media.size() > 0) {
+                for (TweetMedia med : media) {
+                    med.setEntities(this);
+                    med.cascadeSave();
+                }
+            }
+            return retVal;
         }
     }
 
@@ -109,5 +126,9 @@ public class Tweet extends Model {
         public ExtendedEntities() {
             super();
         }
+    }
+
+    public static Tweet findTweet(long serverId) {
+        return new Select().from(Tweet.class).where("remote_id = ?", serverId).executeSingle();
     }
 }

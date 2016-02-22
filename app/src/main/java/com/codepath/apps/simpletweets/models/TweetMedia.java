@@ -14,9 +14,14 @@ public class TweetMedia extends Model {
 
     @Column String type;
     @Column String mediaUrl;
+    @Column (name = "Entities") Tweet.Entities mEntities;
 
     public TweetMedia() {
         super();
+    }
+
+    public void setEntities(Tweet.Entities entities) {
+        mEntities = entities;
     }
 
     public final Long cascadeSave() {

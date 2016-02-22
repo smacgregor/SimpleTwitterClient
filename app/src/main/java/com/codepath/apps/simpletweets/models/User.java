@@ -3,6 +3,7 @@ package com.codepath.apps.simpletweets.models;
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
+import com.activeandroid.query.Select;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -31,7 +32,19 @@ public class User extends Model {
         return "@" + screenName;
     }
 
+    public long getServerId() {
+        return serverId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
     public String getProfileImageUrl() {
         return profileImageUrl;
+    }
+
+    public static User findUser(long serverId) {
+        return new Select().from(Tweet.class).where("remote_id = ?", serverId).executeSingle();
     }
 }
