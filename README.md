@@ -47,6 +47,7 @@ The following **additional** features are implemented:
 * [X] Created a TwitterManager that encapsulates twitter logic and reduce code smells in the TimelineActivity. The twitter manager interacts with the twitter client.
 * [X] Added functional action buttons for reply, retweet and favorite to both the timeline view and the details activity for every tweet.
 * [X] Error handling for offline mode and failed network requests
+* [X] The floating action bar disappears as you scroll the recylcer view.
 * [X] Use the verify_credentials end point to get and store a current user object
 * [X] Use high res profile pic images by using the _bigger version for user profile pictures
 * [X] Add a back button to the tweet details screen
