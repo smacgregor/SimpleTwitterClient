@@ -56,7 +56,8 @@ The following **additional** features are implemented:
 * [X] RecyclerView uses a heterogenous layout - one for tweets and one for tweets with media. XML includes and ViewHolder inheritance were used to minimize code bloat with the two layouts.
 * [X] After posting a new tweet - auto scroll the recycler view so the new post is in view
 * [X] Preserve bitmap quality when using Glide
-
+* [X] Add an adapter animation (AlphaInAnimationAdapter) using the RecyclerView animations library
+* 
 ## Video Walkthrough 
 
 Here's a walkthrough of implemented user stories:
