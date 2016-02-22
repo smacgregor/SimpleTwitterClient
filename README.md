@@ -52,28 +52,33 @@ The following **additional** features are implemented:
 * [X] Use high res profile pic images by using the _bigger version for user profile pictures
 * [X] Add a back button to the tweet details screen
 * [X] Round media images embedded inside of tweets like twitter does
-* [X] Make liberal use of include XML files to re-use XML layouts between the timeline and the activity for rendering tweets
+* [X] Make liberal use of include XML files to re-use XML layouts between the timeline and the activity for rendering tweets. For instance I created an XML layout for the tweet action buttons (reply, retweet, favorite) and then included that in the tweet item for the RecyclerView and in the tweet details layout.
 * [X] RecyclerView uses a heterogenous layout - one for tweets and one for tweets with media. XML includes and ViewHolder inheritance were used to minimize code bloat with the two layouts.
 * [X] After posting a new tweet - auto scroll the recycler view so the new post is in view
 * [X] Preserve bitmap quality when using Glide
-* [X] Add an adapter animation (AlphaInAnimationAdapter) using the RecyclerView animations library
-* 
+* [X] Add an adapter animation (AlphaInAnimationAdapter) using the RecyclerView animations library which I thought looked pretty slick.
+
 ## Video Walkthrough 
 
 Here's a walkthrough of implemented user stories:
 
-<img src='http://i.imgur.com/link/to/your/gif/file.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+<img src='https://cloud.githubusercontent.com/assets/1521460/13209930/bfe51f4c-d8de-11e5-9325-4160cd9b39c3.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
 
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
 ## Notes
 
-I ran into a lot of problems getting ActiveAndroid to play nice with the nested class hierarchies introduced by relying on GSON to build my models. I eventually punted on that item.
+I ran into a lot of problems getting ActiveAndroid to play nice with the nested class hierarchies introduced by relying on GSON to build my models. I came close and hope to finish that branch off tomorrow but it wasn't going to make tonights 10pm deadline.
 
 ## Open-source libraries used
 
 - [Android Async HTTP](https://github.com/loopj/android-async-http) - Simple asynchronous HTTP requests with JSON parsing
-- [Picasso](http://square.github.io/picasso/) - Image loading and caching library for Android
+- [Glide](https://github.com/bumptech/glide) - Image loading and caching library for Android
+- [Parceler](https://github.com/johncarl81/parceler) - Remove boilerplate around making model objects parcelable
+- [RecyclerView Animators](https://github.com/wasabeef/recyclerview-animators) - Make RecyclerView animations easy!
+- [Gson](https://github.com/google/gson) - streamline JSON parsing into models
+- [Butterknife](http://jakewharton.github.io/butterknife/) - Remove view binding boilerplate
+- [RoundedImageView](https://github.com/vinc3m1/RoundedImageView) - For rounding profile pictures and rich media in the twitter timeline
 
 ## License
 
