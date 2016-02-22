@@ -40,6 +40,7 @@ The following **bonus** features are implemented:
 * [X] [Leverage RecyclerView](http://guides.codepath.com/android/Using-the-RecyclerView) as a replacement for the ListView and ArrayAdapter for all lists of tweets.
 * [X] Move the "Compose" action to a [FloatingActionButton](https://github.com/codepath/android_guides/wiki/Floating-Action-Buttons) instead of on the AppBar.
 * [X] Replace Picasso with [Glide](http://inthecheesefactory.com/blog/get-to-know-glide-recommended-by-google/en) for more efficient image rendering.
+* [X] Used the Ribot style guide - https://github.com/ribot/android-guidelines/blob/master/project_and_code_guidelines.md
 
 The following **additional** features are implemented:
 
