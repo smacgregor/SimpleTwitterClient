@@ -13,7 +13,7 @@ import java.util.List;
 
 public class TweetVideo extends TweetMedia {
 
-    @Column(name="VideoInfo", onUpdate = Column.ForeignKeyAction.CASCADE, onDelete = Column.ForeignKeyAction.CASCADE)
+    @Column(name="VideoInfo")
     VideoInfo videoInfo;
 
     @Column (name = "ExtendedEntities") Tweet.ExtendedEntities mExtendedEntities;
