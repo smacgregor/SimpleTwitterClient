@@ -77,7 +77,7 @@ public class TimelineActivity extends AppCompatActivity
         if (newTweetPost != null) {
             mTweets.add(0, newTweetPost);
             mTweetsAdapter.notifyItemRangeInserted(0, 1);
-            mNewestTweetId = newTweetPost.getId();
+            mNewestTweetId = newTweetPost.getServerId();
             LinearLayoutManager linearLayoutManager = (LinearLayoutManager) mTweetsView.getLayoutManager();
             linearLayoutManager.scrollToPositionWithOffset(0, 20);
         }
@@ -144,7 +144,7 @@ public class TimelineActivity extends AppCompatActivity
                         if (tweets.size() > 0) {
                             mTweets.addAll(0, tweets);
                             mTweetsAdapter.notifyItemRangeInserted(0, tweets.size());
-                            mNewestTweetId = tweets.get(0).getId();
+                            mNewestTweetId = tweets.get(0).getServerId();
                         }
                         mSwipeRefreshLayout.setRefreshing(false);
                     }
@@ -170,9 +170,9 @@ public class TimelineActivity extends AppCompatActivity
                 if (tweets.size() > 0) {
                     mTweets.addAll(tweets);
                     mTweetsAdapter.notifyItemRangeInserted(mTweetsAdapter.getItemCount(), tweets.size());
-                    mOldestTweetId = tweets.get(tweets.size() - 1).getId();
+                    mOldestTweetId = tweets.get(tweets.size() - 1).getServerId();
                     if (mNewestTweetId == 0) {
-                        mNewestTweetId = tweets.get(0).getId();
+                        mNewestTweetId = tweets.get(0).getServerId();
                     }
                 }
             }
@@ -197,7 +197,7 @@ public class TimelineActivity extends AppCompatActivity
     }
 
     private void markTweetAsFavorite(final Tweet tweet) {
-        TwitterManager.getInstance().markAsFavorite(tweet.getId(), new TwitterManager.OnTweetUpdatedListener() {
+        TwitterManager.getInstance().markAsFavorite(tweet.getServerId(), new TwitterManager.OnTweetUpdatedListener() {
             @Override
             public void onTweetUpdated(Tweet updatedTweet) {
                 // this will be easier when tweets are in a local db
@@ -213,7 +213,7 @@ public class TimelineActivity extends AppCompatActivity
     }
 
     private void retweet(final Tweet tweet) {
-        TwitterManager.getInstance().retweet(tweet.getId(), new TwitterManager.OnTweetUpdatedListener() {
+        TwitterManager.getInstance().retweet(tweet.getServerId(), new TwitterManager.OnTweetUpdatedListener() {
             @Override
             public void onTweetUpdated(Tweet updatedTweet) {
                 // this will be easier when tweets are in a local db

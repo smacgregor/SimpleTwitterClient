@@ -2,6 +2,8 @@ package com.codepath.apps.simpletweets;
 
 import android.util.Log;
 
+import com.activeandroid.ActiveAndroid;
+import com.activeandroid.query.Select;
 import com.codepath.apps.simpletweets.models.Tweet;
 import com.codepath.apps.simpletweets.models.User;
 import com.google.gson.FieldNamingPolicy;
@@ -12,6 +14,7 @@ import com.loopj.android.http.TextHttpResponseHandler;
 
 import org.apache.http.Header;
 
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.List;
 
@@ -19,6 +22,8 @@ import java.util.List;
  * Created by smacgregor on 2/18/16.
  */
 public class TwitterManager {
+
+    private static int PAGE_SIZE = 25;
 
     private static TwitterManager mInstance = new TwitterManager();
     private TwitterClient mTwitterClient;
@@ -40,24 +45,46 @@ public class TwitterManager {
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, String responseString) {
-                listener.onUserReceived(parseUserFromJSON(responseString));
+                User currentUser = parseUserFromJSON(responseString);
+                if (currentUser != null) {
+                    currentUser.save();
+                }
+                listener.onUserReceived(currentUser);
             }
         });
     }
 
     public void fetchTimelineTweets(long oldestTweetId, long lastSeenTweetId, final OnTimelineTweetsReceivedListener listener) {
-        mTwitterClient.getHomeTimeline(25, oldestTweetId, lastSeenTweetId, new TextHttpResponseHandler() {
-            @Override
-            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                Log.d("DEBUG", "failed to get a response from twitter", throwable);
-                listener.onTweetsFailed(statusCode, throwable);
-            }
+        if (mTwitterClient.isOnline()) {
+            mTwitterClient.getHomeTimeline(PAGE_SIZE, oldestTweetId, lastSeenTweetId, new TextHttpResponseHandler() {
+                @Override
+                public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                    listener.onTweetsFailed(statusCode, throwable);
+                }
 
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, String responseString) {
-                listener.onTweetsReceived(parseTweetsFromJSON(responseString));
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, String responseString) {
+                    List<Tweet> tweets = parseTweetsFromJSON(responseString);
+                    saveTweets(tweets);
+                    listener.onTweetsReceived(tweets);
+                }
+            });
+        } else {
+            List<Tweet> queryResults;
+            if (oldestTweetId > 0) {
+                queryResults = new Select().
+                        from(Tweet.class).
+                        where("remote_id < ?", oldestTweetId).
+                        orderBy("remote_id DESC").
+                        limit(PAGE_SIZE).execute();
+            } else {
+                queryResults = new Select().
+                        from(Tweet.class).
+                        orderBy("remote_id DESC").
+                        limit(PAGE_SIZE).execute();
             }
-        });
+            listener.onTweetsReceived(queryResults);
+        }
     }
 
     public void postUpdate(final String postContents, long inReplyToStatusId, final OnNewPostReceivedListener listener) {
@@ -69,7 +96,10 @@ public class TwitterManager {
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, String responseString) {
-                listener.onPostCreated(parseTweetFromJSON(responseString));
+                Tweet tweet = parseTweetFromJSON(responseString);
+                // TODO - move to a background thread
+                tweet.save();
+                listener.onPostCreated(tweet);
             }
         });
     }
@@ -84,7 +114,10 @@ public class TwitterManager {
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, String responseString) {
-                listener.onTweetUpdated(parseTweetFromJSON(responseString));
+                Tweet tweet = parseTweetFromJSON(responseString);
+                // TODO - move to a background thread
+                tweet.save();
+                listener.onTweetUpdated(tweet);
             }
         });
     }
@@ -98,7 +131,10 @@ public class TwitterManager {
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, String responseString) {
-                listener.onTweetUpdated(parseTweetFromJSON(responseString));
+                Tweet tweet = parseTweetFromJSON(responseString);
+                // TODO - move to a background thread
+                tweet.save();
+                listener.onTweetUpdated(tweet);
             }
         });
     }
@@ -109,15 +145,32 @@ public class TwitterManager {
     }
 
     private List<Tweet> parseTweetsFromJSON(String response) {
-        Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+        Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).
+                excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC).
+                create();
         Type collectionType = new TypeToken<List<Tweet>>(){}.getType();
         return gson.fromJson(response, collectionType);
     }
 
     private User parseUserFromJSON(String jsonResponse) {
-        Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+        Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).
+                excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC).
+                create();
         Type collectionType = new TypeToken<User>(){}.getType();
         return gson.fromJson(jsonResponse, collectionType);
+    }
+
+    private void saveTweets(List<Tweet> tweets) {
+        // TODO - This save should be done on a background thread
+        ActiveAndroid.beginTransaction();
+        try {
+            for (Tweet tweet : tweets) {
+                tweet.cascadeSave();
+            }
+            ActiveAndroid.setTransactionSuccessful();
+        } finally {
+            ActiveAndroid.endTransaction();
+        }
     }
 
 

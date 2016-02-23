@@ -22,8 +22,6 @@ import com.codepath.apps.simpletweets.models.User;
 import com.codepath.apps.simpletweets.utils.TweetHelpers;
 import com.makeramen.roundedimageview.RoundedImageView;
 
-import org.parceler.Parcels;
-
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -65,9 +63,9 @@ public class ComposeTweetDialogFragment extends DialogFragment {
     public static ComposeTweetDialogFragment newInstance(User currentUser, Tweet inReplyToTweet) {
         ComposeTweetDialogFragment fragment = new ComposeTweetDialogFragment();
         Bundle args = new Bundle();
-        args.putParcelable(ARGUMENT_CURRENT_USER, Parcels.wrap(currentUser));
+        args.putLong(ARGUMENT_CURRENT_USER, currentUser.getServerId());
         if (inReplyToTweet != null) {
-            args.putParcelable(ARGUMENT_INREPLY_TO_TWEET, Parcels.wrap(inReplyToTweet));
+            args.putLong(ARGUMENT_INREPLY_TO_TWEET, inReplyToTweet.getServerId());
         }
         fragment.setArguments(args);
         return fragment;
@@ -77,8 +75,8 @@ public class ComposeTweetDialogFragment extends DialogFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mCurrentUser = Parcels.unwrap(getArguments().getParcelable(ARGUMENT_CURRENT_USER));
-            mInReplyToTweet = Parcels.unwrap(getArguments().getParcelable(ARGUMENT_INREPLY_TO_TWEET));
+            mCurrentUser = User.findUser(getArguments().getLong(ARGUMENT_CURRENT_USER));
+            mInReplyToTweet = Tweet.findTweet(getArguments().getLong(ARGUMENT_INREPLY_TO_TWEET, 0));
         }
     }
 

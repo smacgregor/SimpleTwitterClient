@@ -15,15 +15,7 @@ import java.io.IOException;
 
 /*
  * 
- * This is the object responsible for communicating with a REST API. 
- * Specify the constants below to change the API being communicated with.
- * See a full list of supported API classes: 
- *   https://github.com/fernandezpablo85/scribe-java/tree/master/src/main/java/org/scribe/builder/api
- * Key and Secret are provided by the developer site for the given API i.e dev.twitter.com
- * Add methods for each relevant endpoint in the API.
- * 
- * NOTE: You may want to rename this object based on the service i.e TwitterClient or FlickrClient
- * 
+ * This is the object responsible for communicating with the Twitter API.
  */
 public class TwitterClient extends OAuthBaseClient {
 	public static final Class<? extends Api> REST_API_CLASS = TwitterApi.class;
@@ -36,6 +28,10 @@ public class TwitterClient extends OAuthBaseClient {
 		super(context, REST_API_CLASS, REST_URL, REST_CONSUMER_KEY, REST_CONSUMER_SECRET, REST_CALLBACK_URL);
 	}
 
+	public boolean isOnline() {
+		return isNetworkOnline() && isNetworkAvailable(context);
+	}
+
 	/**
 	 * Return a set of tweets for the current users timeline
 	 * @param count
@@ -44,23 +40,19 @@ public class TwitterClient extends OAuthBaseClient {
 	 * @param handler
 	 */
 	public void getHomeTimeline(int count, long tweetMaxId, long lastSeenTweetId, TextHttpResponseHandler handler) {
-		if (isOnline() && isNetworkAvailable(context)) {
-			String apiUrl = getApiUrl("statuses/home_timeline.json");
-			RequestParams params = new RequestParams();
-			params.put("count", count);
+		String apiUrl = getApiUrl("statuses/home_timeline.json");
+		RequestParams params = new RequestParams();
+		params.put("count", count);
 
-			if (tweetMaxId > 0) {
-				params.put("max_id", tweetMaxId - 1);
-			}
-
-			if (lastSeenTweetId > 0) {
-				params.put("since_id", lastSeenTweetId);
-			}
-
-			client.get(apiUrl, params, handler);
-		} else {
-			handler.onFailure(0, null, "", null);
+		if (tweetMaxId > 0) {
+			params.put("max_id", tweetMaxId - 1);
 		}
+
+		if (lastSeenTweetId > 0) {
+			params.put("since_id", lastSeenTweetId);
+		}
+
+		client.get(apiUrl, params, handler);
 	}
 
 	/**
@@ -68,12 +60,8 @@ public class TwitterClient extends OAuthBaseClient {
 	 * @param handler
 	 */
 	public void getCurrentUser(TextHttpResponseHandler handler) {
-		if (isOnline() && isNetworkAvailable(context)) {
-			String apiUrl = getApiUrl("account/verify_credentials.json");
-			client.get(apiUrl, null, handler);
-		} else {
-			handler.onFailure(0, null, "", null);
-		}
+		String apiUrl = getApiUrl("account/verify_credentials.json");
+		client.get(apiUrl, null, handler);
 	}
 
 	/**
@@ -124,7 +112,7 @@ public class TwitterClient extends OAuthBaseClient {
 		return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
 	}
 
-	private boolean isOnline() {
+	private boolean isNetworkOnline() {
 		Runtime runtime = Runtime.getRuntime();
 		try {
 			Process ipProcess = runtime.exec("/system/bin/ping -c 1 8.8.8.8");

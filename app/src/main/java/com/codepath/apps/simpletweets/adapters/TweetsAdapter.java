@@ -8,6 +8,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.codepath.apps.simpletweets.R;
 import com.codepath.apps.simpletweets.models.Tweet;
 import com.codepath.apps.simpletweets.models.User;
@@ -104,6 +105,7 @@ public class TweetsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
         Glide.with(holder.mProfileImage.getContext()).
                 load(TweetHelpers.getBestProfilePictureforUser(user)).
+                diskCacheStrategy(DiskCacheStrategy.ALL).
                 into(holder.mProfileImage);
     }
 
@@ -111,9 +113,11 @@ public class TweetsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         setupTweetViewHolder(holder, position);
 
         Tweet tweet = mTweets.get(position);
+        tweet.getMedia().save();
         // now load the media image
         Glide.with(holder.mMediaImage.getContext()).
                 load(tweet.getMedia().getUrl()).
+                diskCacheStrategy(DiskCacheStrategy.ALL).
                 into(holder.mMediaImage);
     }
 

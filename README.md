@@ -24,7 +24,7 @@ The following **optional** features are implemented:
 * [X] User can **see a counter with total number of characters left for tweet** on compose tweet page
 * [X] User can **click a link within a tweet body** on tweet details view. The click will launch the web browser with relevant page opened.
 * [X] User can **pull down to refresh tweets timeline**
-* [ ] User can **open the twitter app offline and see last loaded tweets**. Persisted in SQLite tweets are refreshed on every application launch. While "live data" is displayed when app can get it from Twitter API, it is also saved for use in offline mode.
+* [X] User can **open the twitter app offline and see last loaded tweets**. Persisted in SQLite tweets are refreshed on every application launch. While "live data" is displayed when app can get it from Twitter API, it is also saved for use in offline mode.
 * [X] User can tap a tweet to **open a detailed tweet view**
 * [X] User can **select "reply" from detail view to respond to a tweet**
 * [X] Improve the user interface and theme the app to feel "twitter branded"
@@ -63,6 +63,10 @@ The following **additional** features are implemented:
 Here's a walkthrough of implemented user stories:
 
 <img src='https://cloud.githubusercontent.com/assets/1521460/13209930/bfe51f4c-d8de-11e5-9325-4160cd9b39c3.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+
+Here's a walkthrough of offline mode:
+
+<img src='https://cloud.githubusercontent.com/assets/1521460/13235279/eb739f9c-d971-11e5-9f30-b61cff82e4d6.gif' title='Offline Video Walkthrough' width='' alt='Offline Walkthrough'/>
 
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
