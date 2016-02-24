@@ -47,7 +47,12 @@ public class TwitterManager {
             public void onSuccess(int statusCode, Header[] headers, String responseString) {
                 User currentUser = parseUserFromJSON(responseString);
                 if (currentUser != null) {
-                    currentUser.save();
+                    User originalUser = User.findUser(currentUser.getServerId());
+                    if (originalUser != null) {
+                        currentUser = originalUser;
+                    } else {
+                        currentUser.save();
+                    }
                 }
                 listener.onUserReceived(currentUser);
             }
@@ -115,8 +120,12 @@ public class TwitterManager {
             @Override
             public void onSuccess(int statusCode, Header[] headers, String responseString) {
                 Tweet tweet = parseTweetFromJSON(responseString);
-                // TODO - move to a background thread
-                tweet.save();
+                Tweet original = Tweet.findTweet(tweet.getServerId());
+                if (original != null) {
+                    tweet = original;
+                } else {
+                    tweet.save();
+                }
                 listener.onTweetUpdated(tweet);
             }
         });
@@ -132,8 +141,12 @@ public class TwitterManager {
             @Override
             public void onSuccess(int statusCode, Header[] headers, String responseString) {
                 Tweet tweet = parseTweetFromJSON(responseString);
-                // TODO - move to a background thread
-                tweet.save();
+                Tweet original = Tweet.findTweet(tweet.getServerId());
+                if (original != null) {
+                    tweet = original;
+                } else {
+                    tweet.save();
+                }
                 listener.onTweetUpdated(tweet);
             }
         });
@@ -165,7 +178,13 @@ public class TwitterManager {
         ActiveAndroid.beginTransaction();
         try {
             for (Tweet tweet : tweets) {
-                tweet.cascadeSave();
+                // does the tweet exist already?
+                Tweet original = Tweet.findTweet(tweet.getServerId());
+                if (original != null) {
+                    tweets.set(tweets.indexOf(tweet), original);
+                } else {
+                    tweet.cascadeSave();
+                }
             }
             ActiveAndroid.setTransactionSuccessful();
         } finally {

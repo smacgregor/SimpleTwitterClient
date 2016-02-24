@@ -22,13 +22,13 @@ public class Tweet extends Model {
     @Column int favoriteCount;
     @Column String createdAt;
 
-    @Column(name = "remote_id", unique = true, index = true, onUniqueConflict = Column.ConflictAction.REPLACE)
+    @Column(name = "remote_id")
     @SerializedName("id") long serverId;
 
-    @Column(name="Entities", onUpdate = Column.ForeignKeyAction.CASCADE, onDelete = Column.ForeignKeyAction.CASCADE)
+    @Column(name="Entities", onDelete = Column.ForeignKeyAction.CASCADE)
     Entities entities;
 
-    @Column(name="ExtendedEntities", onUpdate = Column.ForeignKeyAction.CASCADE, onDelete = Column.ForeignKeyAction.CASCADE)
+    @Column(name="ExtendedEntities", onDelete = Column.ForeignKeyAction.CASCADE)
     ExtendedEntities extendedEntities;
 
     public Tweet() {
@@ -36,10 +36,13 @@ public class Tweet extends Model {
     }
 
     public final Long cascadeSave() {
-        // onUpdate = Column.ForeignKeyAction.CASCADE is not working for me
-        // so for now - hand save our inner classes when we try to save a tweet
         if (user != null) {
-            user.save();
+            User originalUser = User.findUser(user.getServerId());
+            if (originalUser != null) {
+                user = originalUser;
+            } else {
+                user.save();
+            }
         }
 
         if (entities != null) {
