@@ -92,6 +92,26 @@ public class TwitterManager {
         }
     }
 
+    public void fetchMentionTweets(long oldestTweetId, long lastSeenTweetId, final OnTimelineTweetsReceivedListener listener) {
+        if (mTwitterClient.isOnline()) {
+            mTwitterClient.getMentionsTimeline(PAGE_SIZE, oldestTweetId, lastSeenTweetId, new TextHttpResponseHandler() {
+                @Override
+                public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                    listener.onTweetsFailed(statusCode, throwable);
+                }
+
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, String responseString) {
+                    List<Tweet> tweets = parseTweetsFromJSON(responseString);
+                    saveTweets(tweets);
+                    listener.onTweetsReceived(tweets);
+                }
+            });
+        } else {
+            listener.onTweetsFailed(0, null);
+        }
+    }
+
     public void postUpdate(final String postContents, long inReplyToStatusId, final OnNewPostReceivedListener listener) {
         mTwitterClient.postUpdate(postContents, inReplyToStatusId, new TextHttpResponseHandler() {
             @Override
@@ -191,7 +211,6 @@ public class TwitterManager {
             ActiveAndroid.endTransaction();
         }
     }
-
 
     public interface OnTimelineTweetsReceivedListener {
         void onTweetsReceived(List<Tweet> tweets);

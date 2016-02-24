@@ -13,8 +13,7 @@ import java.util.List;
 /**
  * Created by smacgregor on 2/23/16.
  */
-public class HomeTimelineFragment extends TweetsTimelineFragment {
-
+public class MentionsTimelineFragment extends TweetsTimelineFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -26,7 +25,7 @@ public class HomeTimelineFragment extends TweetsTimelineFragment {
      */
     @Override
     public void fetchTweetsForTimeline() {
-        TwitterManager.getInstance().fetchTimelineTweets(getOldestTweetId(), 0, new TwitterManager.OnTimelineTweetsReceivedListener() {
+        TwitterManager.getInstance().fetchMentionTweets(getOldestTweetId(), 0, new TwitterManager.OnTimelineTweetsReceivedListener() {
             @Override
             public void onTweetsReceived(List<Tweet> tweets) {
                 appendTweets(tweets);
@@ -46,7 +45,7 @@ public class HomeTimelineFragment extends TweetsTimelineFragment {
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                TwitterManager.getInstance().fetchTimelineTweets(0, getNewestTweetId(), new TwitterManager.OnTimelineTweetsReceivedListener() {
+                TwitterManager.getInstance().fetchMentionTweets(0, getNewestTweetId(), new TwitterManager.OnTimelineTweetsReceivedListener() {
                     @Override
                     public void onTweetsReceived(List<Tweet> tweets) {
                         prependTweets(tweets, false);
