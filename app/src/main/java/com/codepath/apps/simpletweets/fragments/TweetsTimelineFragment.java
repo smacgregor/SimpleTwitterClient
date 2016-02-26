@@ -58,8 +58,6 @@ public class TweetsTimelineFragment extends Fragment implements TweetsAdapter.On
         mTweets = new ArrayList<>();
         mOldestTweetId = 0;
         mNewestTweetId = 0;
-
-        fetchCurrentUser();
     }
 
     @Override
@@ -83,6 +81,10 @@ public class TweetsTimelineFragment extends Fragment implements TweetsAdapter.On
 
     public User getCurrentUser() {
         return mCurrentUser;
+    }
+
+    public void setCurrentUser(User user) {
+        mCurrentUser = user;
     }
 
     public long getOldestTweetId() {
@@ -147,19 +149,6 @@ public class TweetsTimelineFragment extends Fragment implements TweetsAdapter.On
                 Snackbar.LENGTH_LONG).show();
     }
 
-    private void fetchCurrentUser() {
-        TwitterManager.getInstance().fetchCurrentUser(new TwitterManager.OnCurrentUserReceivedListener() {
-            @Override
-            public void onUserReceived(User user) {
-                mCurrentUser = user;
-            }
-
-            @Override
-            public void onUserFailed(int statusCode, Throwable throwable) {
-            }
-        });
-    }
-
     private void retweet(final Tweet tweet) {
         TwitterManager.getInstance().retweet(tweet.getServerId(), new TwitterManager.OnTweetUpdatedListener() {
             @Override
@@ -181,7 +170,7 @@ public class TweetsTimelineFragment extends Fragment implements TweetsAdapter.On
      * @param tweet
      */
     private void openTweet(Tweet tweet) {
-        Intent intent = TweetDetailsActivity.getStartIntent(getActivity(), tweet, mCurrentUser);
+        Intent intent = TweetDetailsActivity.getStartIntent(getActivity(), tweet, TwitterManager.getInstance().getCurrentUser());
         startActivity(intent);
     }
 

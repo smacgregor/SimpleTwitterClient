@@ -27,36 +27,19 @@ public class TwitterManager {
 
     private static TwitterManager mInstance = new TwitterManager();
     private TwitterClient mTwitterClient;
+    private User mCurrentUser;
 
     private TwitterManager() {
         mTwitterClient = TwitterApplication.getRestClient();
+        fetchCurrentUser();
     }
 
     public static TwitterManager getInstance() {
         return mInstance;
     }
 
-    public void fetchCurrentUser(final OnCurrentUserReceivedListener listener) {
-        mTwitterClient.getCurrentUser(new TextHttpResponseHandler() {
-            @Override
-            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                listener.onUserFailed(statusCode, throwable);
-            }
-
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, String responseString) {
-                User currentUser = parseUserFromJSON(responseString);
-                if (currentUser != null) {
-                    User originalUser = User.findUser(currentUser.getServerId());
-                    if (originalUser != null) {
-                        currentUser = originalUser;
-                    } else {
-                        currentUser.save();
-                    }
-                }
-                listener.onUserReceived(currentUser);
-            }
-        });
+    public User getCurrentUser() {
+        return mCurrentUser;
     }
 
     public void fetchTimelineTweets(long oldestTweetId, long lastSeenTweetId, final OnTimelineTweetsReceivedListener listener) {
@@ -95,6 +78,26 @@ public class TwitterManager {
     public void fetchMentionTweets(long oldestTweetId, long lastSeenTweetId, final OnTimelineTweetsReceivedListener listener) {
         if (mTwitterClient.isOnline()) {
             mTwitterClient.getMentionsTimeline(PAGE_SIZE, oldestTweetId, lastSeenTweetId, new TextHttpResponseHandler() {
+                @Override
+                public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                    listener.onTweetsFailed(statusCode, throwable);
+                }
+
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, String responseString) {
+                    List<Tweet> tweets = parseTweetsFromJSON(responseString);
+                    saveTweets(tweets);
+                    listener.onTweetsReceived(tweets);
+                }
+            });
+        } else {
+            listener.onTweetsFailed(0, null);
+        }
+    }
+
+    public void fetchUserTimeline(long userId, long oldestTweetId, long lastSeenTweetId, final OnTimelineTweetsReceivedListener listener) {
+        if (mTwitterClient.isOnline()) {
+            mTwitterClient.getUsersTimeline(userId, PAGE_SIZE, oldestTweetId, lastSeenTweetId, new TextHttpResponseHandler() {
                 @Override
                 public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
                     listener.onTweetsFailed(statusCode, throwable);
@@ -172,6 +175,28 @@ public class TwitterManager {
         });
     }
 
+    private void fetchCurrentUser() {
+        mTwitterClient.getCurrentUser(new TextHttpResponseHandler() {
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+            }
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, String responseString) {
+                User currentUser = parseUserFromJSON(responseString);
+                if (currentUser != null) {
+                    User originalUser = User.findUser(currentUser.getServerId());
+                    if (originalUser != null) {
+                        currentUser = originalUser;
+                    } else {
+                        currentUser.save();
+                    }
+                }
+                mCurrentUser = currentUser;
+            }
+        });
+    }
+
     private Tweet parseTweetFromJSON(String response) {
         Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
         return gson.fromJson(response, Tweet.class);
@@ -215,11 +240,6 @@ public class TwitterManager {
     public interface OnTimelineTweetsReceivedListener {
         void onTweetsReceived(List<Tweet> tweets);
         void onTweetsFailed(int statusCode, Throwable throwable);
-    }
-
-    public interface OnCurrentUserReceivedListener {
-        void onUserReceived(User user);
-        void onUserFailed(int statusCode, Throwable throwable);
     }
 
     public interface OnNewPostReceivedListener {
