@@ -12,4 +12,15 @@
     <string name="error_no_network">Please check your internet connections</string>
     <string name="error_favorite_failed">Unable to mark as a favorite. Please check your internet settings.</string>
     <string name="error_retweet_failed">Unable to retweet. Please check your internet settings.</string>
+
+    <string name="profile_title">Profile</string>
+    <string name="title_activity_profile">ProfileActivity</string>
+
+    <plurals name="numberOfFollowers">
+        <item quantity="one">%d FOLLOWER</item>
+        <item quantity="other">%d FOLLOWERS</item>
+    </plurals>
+
+    <string name="numberOfFollowing">%d FOLLOWING</string>
+
 </resources>

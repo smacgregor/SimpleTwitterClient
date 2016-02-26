@@ -15,7 +15,12 @@ public class User extends Model {
 
     @Column String name;
     @Column String screenName;
+    @Column int followersCount;
+    @Column int friendsCount;
     @Column String profileImageUrl;
+    @Column String profileBannerUrl;
+    @Column String profileBackgroundColor;
+    @Column String description;
 
     @Column(name = "remote_id", unique = true, onUniqueConflict = Column.ConflictAction.REPLACE)
     @SerializedName("id") long serverId;
@@ -40,8 +45,28 @@ public class User extends Model {
         return name;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public int getFollowersCount() {
+        return followersCount;
+    }
+
+    public int getFollowingCount() {
+        return friendsCount;
+    }
+
     public String getProfileImageUrl() {
         return profileImageUrl;
+    }
+
+    public String getProfileBackgroundImageUrl() {
+        return profileBannerUrl;
+    }
+
+    public String getProfileBackgroundColor() {
+        return profileBackgroundColor;
     }
 
     public static User findUser(long serverId) {

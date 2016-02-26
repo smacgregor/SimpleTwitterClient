@@ -34,25 +34,23 @@ public class TwitterClient extends OAuthBaseClient {
 
 	/**
 	 * Return a set of tweets for the current users timeline
-	 * @param count
-	 * @param tweetMaxId - return results older than this id
+	 * @param pageSize
+	 * @param oldestTweetId - return results older than this id
 	 * @param lastSeenTweetId - return results more recent than this id
 	 * @param handler
 	 */
-	public void getHomeTimeline(int count, long tweetMaxId, long lastSeenTweetId, TextHttpResponseHandler handler) {
+	public void getHomeTimeline(int pageSize, long oldestTweetId, long lastSeenTweetId, TextHttpResponseHandler handler) {
 		String apiUrl = getApiUrl("statuses/home_timeline.json");
-		RequestParams params = new RequestParams();
-		params.put("count", count);
+        getTimeline("statuses/home_timeline.json", 0, pageSize, oldestTweetId, lastSeenTweetId, handler);
+	}
 
-		if (tweetMaxId > 0) {
-			params.put("max_id", tweetMaxId - 1);
-		}
 
-		if (lastSeenTweetId > 0) {
-			params.put("since_id", lastSeenTweetId);
-		}
+	public void getMentionsTimeline(int pageSize, long oldestTweetId, long lastSeenTweetId, TextHttpResponseHandler handler) {
+        getTimeline("statuses/mentions_timeline.json", 0, pageSize, oldestTweetId, lastSeenTweetId, handler);
+}
 
-		client.get(apiUrl, params, handler);
+	public void getUsersTimeline(long userId, int pageSize, long oldestTweetId, long lastSeenTweetId, TextHttpResponseHandler handler) {
+        getTimeline("statuses/user_timeline.json", userId, pageSize, oldestTweetId, lastSeenTweetId, handler);
 	}
 
 	/**
@@ -122,4 +120,25 @@ public class TwitterClient extends OAuthBaseClient {
 		catch (InterruptedException e) { e.printStackTrace(); }
 		return false;
 	}
+
+    private void getTimeline(String endPoint, long userId, int pageSize, long tweetMaxId, long lastSeenTweetId, TextHttpResponseHandler handler) {
+        String apiUrl = getApiUrl(endPoint);
+        RequestParams params = new RequestParams();
+        params.put("count", pageSize);
+
+        if (tweetMaxId > 0) {
+            params.put("max_id", tweetMaxId - 1);
+        }
+
+        if (lastSeenTweetId > 0) {
+            params.put("since_id", lastSeenTweetId);
+        }
+
+        if (userId > 0) {
+            params.put("user_uid", userId);
+        }
+
+        client.get(apiUrl, params, handler);
+
+    }
 }
