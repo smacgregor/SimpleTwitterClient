@@ -6,7 +6,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -22,6 +21,7 @@ import com.codepath.apps.simpletweets.fragments.MentionsTimelineFragment;
 import com.codepath.apps.simpletweets.fragments.TweetsTimelineFragment;
 import com.codepath.apps.simpletweets.models.Tweet;
 import com.codepath.apps.simpletweets.models.User;
+import com.codepath.apps.simpletweets.utils.SmartFragmentStatePagerAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,14 +31,14 @@ import butterknife.ButterKnife;
 
 public class TimelineActivity extends AppCompatActivity
         implements FloatingActionButton.OnClickListener,
+        TweetsTimelineFragment.OnTweetsDialogFragmentListener,
         ComposeTweetDialogFragment.OnComposeDialogFragmentListener {
 
     @Bind(R.id.viewpager) ViewPager mViewPager;
     @Bind(R.id.sliding_tabs) TabLayout mTabLayout;
     @Bind(R.id.fab_compose_tweet) FloatingActionButton mFloatingActionButton;
 
-    TweetsTimelineFragment mTweetsTimelineFragment;
-
+    TweetsPagerAdapter mTweetsPagerAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,11 +49,9 @@ public class TimelineActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        if (savedInstanceState == null) {
-            //mTweetsTimelineFragment = (TweetsTimelineFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_timeline);
-        }
         mFloatingActionButton.setOnClickListener(this);
-        mViewPager.setAdapter(new TweetsPagerAdapter(getSupportFragmentManager()));
+        mTweetsPagerAdapter = new TweetsPagerAdapter(getSupportFragmentManager());
+        mViewPager.setAdapter(mTweetsPagerAdapter);
         mTabLayout.setupWithViewPager(mViewPager);
     }
 
@@ -86,15 +84,23 @@ public class TimelineActivity extends AppCompatActivity
         if (newTweetPost != null) {
             List<Tweet> newTweets = new ArrayList<>();
             newTweets.add(newTweetPost);
-//            mTweetsTimelineFragment.prependTweets(newTweets, true);
+
+            // add it to the current timeline
+            TweetsTimelineFragment tweetsTimelineFragment = (TweetsTimelineFragment) mTweetsPagerAdapter.getRegisteredFragment(0);
+            tweetsTimelineFragment.prependTweets(newTweets, true);
         }
     }
 
+    @Override
+    public void onReplyToTweet(Tweet newTweetPost) {
+        composeNewTweet(newTweetPost);
+    }
+
     /**
-     * launch the profile activity for the user
+     * Launch the profile activity for the user
      * @param user
      */
-    private void showProfile(User user) {
+    public void showProfile(User user) {
         Intent intent = ProfileActivity.getStartIntent(this, user);
         startActivity(intent);
     }
@@ -104,13 +110,13 @@ public class TimelineActivity extends AppCompatActivity
      * @param replyToTweet
      */
     private void composeNewTweet(Tweet replyToTweet) {
-        //ComposeTweetDialogFragment tweetDialogFragment = ComposeTweetDialogFragment.newInstance(mTweetsTimelineFragment.getCurrentUser(),
-        //        replyToTweet);
-        //tweetDialogFragment.show(getSupportFragmentManager(), "fragment_compose_tweet_dialog");
+        ComposeTweetDialogFragment tweetDialogFragment = ComposeTweetDialogFragment.newInstance(TwitterManager.getInstance().getCurrentUser(),
+                replyToTweet);
+        tweetDialogFragment.show(getSupportFragmentManager(), "fragment_compose_tweet_dialog");
     }
 
     // Return the order of the fragments in the view pager
-    public class TweetsPagerAdapter extends FragmentPagerAdapter {
+    public class TweetsPagerAdapter extends SmartFragmentStatePagerAdapter {
         // TODO - localize these strings
         private String tabTitles[] = {"Timeline", "Mentions"};
 

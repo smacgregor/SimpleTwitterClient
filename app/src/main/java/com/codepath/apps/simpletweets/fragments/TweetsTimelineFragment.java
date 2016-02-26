@@ -1,5 +1,6 @@
 package com.codepath.apps.simpletweets.fragments;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -14,6 +15,7 @@ import android.view.ViewGroup;
 
 import com.codepath.apps.simpletweets.R;
 import com.codepath.apps.simpletweets.TwitterManager;
+import com.codepath.apps.simpletweets.activities.ProfileActivity;
 import com.codepath.apps.simpletweets.activities.TweetDetailsActivity;
 import com.codepath.apps.simpletweets.adapters.TweetsAdapter;
 import com.codepath.apps.simpletweets.models.Tweet;
@@ -40,7 +42,8 @@ public class TweetsTimelineFragment extends Fragment implements TweetsAdapter.On
 
     private long mOldestTweetId;
     private long mNewestTweetId;
-    private User mCurrentUser;
+    private User mUser;
+    private OnTweetsDialogFragmentListener mOnTweetsDialogFragmentListener;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -61,6 +64,17 @@ public class TweetsTimelineFragment extends Fragment implements TweetsAdapter.On
     }
 
     @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof OnTweetsDialogFragmentListener) {
+            mOnTweetsDialogFragmentListener = (OnTweetsDialogFragmentListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnTweetsDialogFragmentListener");
+        }
+    }
+
+    @Override
     public void onItemClick(View view, int position) {
         Tweet tweet = mTweets.get(position);
         switch (view.getId()) {
@@ -68,10 +82,13 @@ public class TweetsTimelineFragment extends Fragment implements TweetsAdapter.On
                 retweet(tweet);
                 break;
             case R.id.button_reply:
-                // composeNewTweet(tweet);
+                replyToTweet(tweet);
                 break;
             case R.id.button_favorite:
                 markTweetAsFavorite(tweet);
+                break;
+            case R.id.image_profile:
+                showProfile(tweet.getUser());
                 break;
             default:
                 openTweet(mTweets.get(position));
@@ -79,12 +96,12 @@ public class TweetsTimelineFragment extends Fragment implements TweetsAdapter.On
         }
     }
 
-    public User getCurrentUser() {
-        return mCurrentUser;
+    public User getUser() {
+        return mUser;
     }
 
-    public void setCurrentUser(User user) {
-        mCurrentUser = user;
+    public void setUser(User user) {
+        mUser = user;
     }
 
     public long getOldestTweetId() {
@@ -190,4 +207,18 @@ public class TweetsTimelineFragment extends Fragment implements TweetsAdapter.On
         });
     }
 
+    private void replyToTweet(final Tweet tweet) {
+        if (mOnTweetsDialogFragmentListener != null) {
+            mOnTweetsDialogFragmentListener.onReplyToTweet(tweet);
+        }
+    }
+
+    private void showProfile(User user) {
+        Intent intent = ProfileActivity.getStartIntent(getActivity(), user);
+        startActivity(intent);
+    }
+
+    public interface OnTweetsDialogFragmentListener {
+        void onReplyToTweet(Tweet newTweetPost);
+    }
 }

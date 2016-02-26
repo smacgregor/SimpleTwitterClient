@@ -135,7 +135,7 @@ public class TwitterClient extends OAuthBaseClient {
         }
 
         if (userId > 0) {
-            params.put("user_uid", userId);
+            params.put("user_id", userId);
         }
 
         client.get(apiUrl, params, handler);
