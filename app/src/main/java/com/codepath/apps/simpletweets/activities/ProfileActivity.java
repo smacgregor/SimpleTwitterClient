@@ -9,23 +9,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
 import com.codepath.apps.simpletweets.R;
 import com.codepath.apps.simpletweets.TwitterManager;
 import com.codepath.apps.simpletweets.fragments.ComposeTweetDialogFragment;
 import com.codepath.apps.simpletweets.fragments.TweetsTimelineFragment;
+import com.codepath.apps.simpletweets.fragments.UserProfileFragment;
 import com.codepath.apps.simpletweets.fragments.UserTimelineFragment;
 import com.codepath.apps.simpletweets.models.Tweet;
 import com.codepath.apps.simpletweets.models.User;
-import com.codepath.apps.simpletweets.utils.TweetHelpers;
-import com.makeramen.roundedimageview.RoundedImageView;
 
-import butterknife.Bind;
 import butterknife.ButterKnife;
 
 public class ProfileActivity extends AppCompatActivity implements
@@ -33,16 +26,6 @@ public class ProfileActivity extends AppCompatActivity implements
         TweetsTimelineFragment.OnTweetsDialogFragmentListener {
 
     private static String EXTRA_USER_ID = "com.codepath.apps.simpletweets.activities.profile.userid";
-
-    @Bind(R.id.layout_timeline_placholder) FrameLayout mUserTimelinePlaceHolder;
-    @Bind(R.id.image_profile) RoundedImageView mProfileImage;
-    @Bind(R.id.text_name) TextView mUserName;
-    @Bind(R.id.text_screen_name) TextView mScreenName;
-    @Bind(R.id.image_profile_background) ImageView mProfileBackground;
-    @Bind(R.id.layout_profile_header) RelativeLayout mRelativeLayout;
-    @Bind(R.id.text_followers) TextView mFollowersTextView;
-    @Bind(R.id.text_following) TextView mFollowingTextView;
-    @Bind(R.id.text_user_description) TextView mUserDescription;
 
     private long mCurrentUserId;
 
@@ -75,10 +58,11 @@ public class ProfileActivity extends AppCompatActivity implements
 
         if (savedInstanceState == null) {
             setupUserTimeline();
+            setupUserProfile();
         }
+
         User user = User.findUser(mCurrentUserId);
         setupActionBarTitle(user);
-        setupUser(user);
     }
 
     @Override
@@ -107,33 +91,18 @@ public class ProfileActivity extends AppCompatActivity implements
         UserTimelineFragment userTimelineFragment = UserTimelineFragment.newInstance(mCurrentUserId);
         getSupportFragmentManager().
                 beginTransaction().
-                replace(R.id.layout_timeline_placholder, userTimelineFragment).
+                replace(R.id.layout_timeline_placeholder, userTimelineFragment).
                 commit();
     }
 
+    private void setupUserProfile() {
+        UserProfileFragment userProfileFragment = UserProfileFragment.newInstance(mCurrentUserId);
+        getSupportFragmentManager().
+                beginTransaction().
+                replace(R.id.layout_user_profile_placeholder, userProfileFragment).
+                commit();
+    }
     private void setupActionBarTitle(User user) {
         getSupportActionBar().setTitle(user.getScreenName());
     }
-
-    private void setupUser(User user) {
-        Glide.with(mProfileImage.getContext()).
-                load(TweetHelpers.getBestProfilePictureforUser(user)).
-                into(mProfileImage);
-
-        Glide.with(mProfileBackground.getContext()).
-                load(user.getProfileBackgroundImageUrl()).
-                fitCenter().
-                into(mProfileBackground);
-
-        mUserName.setText(user.getUserName());
-        mScreenName.setText(user.getScreenName());
-
-        mFollowersTextView.setText(this.getResources().getQuantityString(R.plurals.numberOfFollowers,
-                user.getFollowersCount(), user.getFollowersCount()));
-
-        mFollowingTextView.setText(this.getResources().getString(R.string.numberOfFollowing, user.getFollowingCount()));
-
-        mUserDescription.setText(user.getDescription());
-    }
-
 }
