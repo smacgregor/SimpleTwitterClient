@@ -7,6 +7,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -15,7 +16,11 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.codepath.apps.simpletweets.R;
+import com.codepath.apps.simpletweets.TwitterManager;
+import com.codepath.apps.simpletweets.fragments.ComposeTweetDialogFragment;
+import com.codepath.apps.simpletweets.fragments.TweetsTimelineFragment;
 import com.codepath.apps.simpletweets.fragments.UserTimelineFragment;
+import com.codepath.apps.simpletweets.models.Tweet;
 import com.codepath.apps.simpletweets.models.User;
 import com.codepath.apps.simpletweets.utils.TweetHelpers;
 import com.makeramen.roundedimageview.RoundedImageView;
@@ -23,7 +28,9 @@ import com.makeramen.roundedimageview.RoundedImageView;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
-public class ProfileActivity extends AppCompatActivity {
+public class ProfileActivity extends AppCompatActivity implements
+        ComposeTweetDialogFragment.OnComposeDialogFragmentListener,
+        TweetsTimelineFragment.OnTweetsDialogFragmentListener {
 
     private static String EXTRA_USER_ID = "com.codepath.apps.simpletweets.activities.profile.userid";
 
@@ -39,6 +46,12 @@ public class ProfileActivity extends AppCompatActivity {
 
     private long mCurrentUserId;
 
+    public static Intent getStartIntent(Context context, User currentUser) {
+        Intent intent= new Intent(context, ProfileActivity.class);
+        intent.putExtra(ProfileActivity.EXTRA_USER_ID, currentUser.getServerId());
+        return intent;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,6 +62,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -67,10 +81,26 @@ public class ProfileActivity extends AppCompatActivity {
         setupUser(user);
     }
 
-    public static Intent getStartIntent(Context context, User currentUser) {
-        Intent intent= new Intent(context, ProfileActivity.class);
-        intent.putExtra(ProfileActivity.EXTRA_USER_ID, currentUser.getServerId());
-        return intent;
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public void onReplyToTweet(Tweet newTweetPost) {
+        ComposeTweetDialogFragment tweetDialogFragment = ComposeTweetDialogFragment.newInstance(TwitterManager.getInstance().getCurrentUser(),
+                newTweetPost);
+        tweetDialogFragment.show(getSupportFragmentManager(), "fragment_compose_tweet_dialog");
+    }
+
+    @Override
+    public void onPostedTweet(Tweet newTweetPost) {
+        // do nothing
     }
 
     private void setupUserTimeline() {

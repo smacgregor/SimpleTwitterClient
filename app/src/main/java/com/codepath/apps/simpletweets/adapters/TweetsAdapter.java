@@ -137,7 +137,7 @@ public class TweetsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
         }
 
-        @OnClick({R.id.button_retweet, R.id.button_favorite, R.id.button_reply})
+        @OnClick({R.id.button_retweet, R.id.button_favorite, R.id.button_reply, R.id.image_profile})
         public void onButtonClicked(View button) {
             // forward this on to our activity to decide what to do
             onClick(button);

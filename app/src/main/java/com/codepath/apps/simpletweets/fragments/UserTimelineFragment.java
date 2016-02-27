@@ -30,7 +30,7 @@ public class UserTimelineFragment extends TweetsTimelineFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         long userId = getArguments().getLong(ARGUMENT_USER_ID);
-        setCurrentUser(User.findUser(userId));
+        setUser(User.findUser(userId));
         fetchTweetsForTimeline();
     }
 
@@ -39,7 +39,7 @@ public class UserTimelineFragment extends TweetsTimelineFragment {
      */
     @Override
     public void fetchTweetsForTimeline() {
-        TwitterManager.getInstance().fetchUserTimeline(getCurrentUser().getServerId(), getOldestTweetId(), 0, new TwitterManager.OnTimelineTweetsReceivedListener() {
+        TwitterManager.getInstance().fetchUserTimeline(getUser().getServerId(), getOldestTweetId(), 0, new TwitterManager.OnTimelineTweetsReceivedListener() {
             @Override
             public void onTweetsReceived(List<Tweet> tweets) {
                 appendTweets(tweets);
@@ -59,7 +59,7 @@ public class UserTimelineFragment extends TweetsTimelineFragment {
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                TwitterManager.getInstance().fetchUserTimeline(getCurrentUser().getServerId(), 0, getNewestTweetId(), new TwitterManager.OnTimelineTweetsReceivedListener() {
+                TwitterManager.getInstance().fetchUserTimeline(getUser().getServerId(), 0, getNewestTweetId(), new TwitterManager.OnTimelineTweetsReceivedListener() {
                     @Override
                     public void onTweetsReceived(List<Tweet> tweets) {
                         prependTweets(tweets, false);
