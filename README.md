@@ -75,11 +75,11 @@ The following **additional** features are implemented:
 
 Here's a walkthrough of implemented user stories:
 
-<img src='https://cloud.githubusercontent.com/assets/1521460/13209930/bfe51f4c-d8de-11e5-9325-4160cd9b39c3.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+<img src='https://cloud.githubusercontent.com/assets/1521460/13386469/87ea369e-de61-11e5-8c2f-d18dbe89f1c2.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
 
 Here's a walkthrough of offline mode:
 
-<img src='https://cloud.githubusercontent.com/assets/1521460/13235279/eb739f9c-d971-11e5-9f30-b61cff82e4d6.gif' title='Offline Video Walkthrough' width='' alt='Offline Walkthrough'/>
+<img src='https://cloud.githubusercontent.com/assets/1521460/13386488/cfd23dda-de61-11e5-9efb-50da3954f225.gif' title='Offline Video Walkthrough' width='' alt='Offline Walkthrough'/>
 
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
