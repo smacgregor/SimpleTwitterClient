@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -30,6 +31,7 @@ public class TweetsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     private final int VIEW_TWEET = 0;
     private final int VIEW_TWEET_WITH_MEDIA = 1;
+    private final int VIEW_PROGRESSBAR = 2;
 
     private List<Tweet> mTweets;
     private OnItemClickListener mOnClickListener;
@@ -49,6 +51,10 @@ public class TweetsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                 currentView = inflator.inflate(R.layout.item_tweet_with_media, parent, false);
                 viewHolder = new TweetViewHolderWithMedia(currentView);
                 break;
+            case VIEW_PROGRESSBAR:
+                currentView = inflator.inflate(R.layout.footer_progress, parent, false);
+                viewHolder = new LoadingViewHolder(currentView);
+                break;
             default:
                 currentView = inflator.inflate(R.layout.item_tweet, parent, false);
                 viewHolder = new TweetViewHolder(currentView);
@@ -63,6 +69,9 @@ public class TweetsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             case VIEW_TWEET_WITH_MEDIA:
                 setupTweetWithMediaViewHolder((TweetViewHolderWithMedia) holder, position);
                 break;
+            case VIEW_PROGRESSBAR:
+                setupLoadingViewHolder((LoadingViewHolder) holder, position);
+                break;
             default:
                 setupTweetViewHolder((TweetViewHolder) holder, position);
                 break;
@@ -72,7 +81,11 @@ public class TweetsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     @Override
     public int getItemViewType(int position) {
         Tweet tweet = mTweets.get(position);
-        return (tweet.getMedia() != null) ? VIEW_TWEET_WITH_MEDIA : VIEW_TWEET;
+        if (tweet == null) {
+            return VIEW_PROGRESSBAR;
+        } else {
+            return (tweet.getMedia() != null) ? VIEW_TWEET_WITH_MEDIA : VIEW_TWEET;
+        }
     }
 
     @Override
@@ -87,6 +100,10 @@ public class TweetsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     public void setOnItemClickListener(final OnItemClickListener mOnClickListener) {
         this.mOnClickListener = mOnClickListener;
+    }
+
+    private void setupLoadingViewHolder(LoadingViewHolder holder, int position) {
+        holder.mProgressBar.setIndeterminate(true);
     }
 
     private void setupTweetViewHolder(TweetViewHolder holder, int position) {
@@ -155,6 +172,15 @@ public class TweetsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         @Bind(R.id.image_media) RoundedImageView mMediaImage;
         public TweetViewHolderWithMedia(View itemView) {
             super(itemView);
+        }
+    }
+
+    public class LoadingViewHolder extends RecyclerView.ViewHolder {
+        @Bind(R.id.progress_footer) ProgressBar mProgressBar;
+
+        public LoadingViewHolder(View view) {
+            super(view);
+            ButterKnife.bind(this, view);
         }
     }
 

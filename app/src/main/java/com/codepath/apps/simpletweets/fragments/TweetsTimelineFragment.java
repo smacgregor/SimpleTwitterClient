@@ -64,6 +64,12 @@ public class TweetsTimelineFragment extends Fragment implements TweetsAdapter.On
     }
 
     @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        fetchTweetsForTimeline();
+    }
+
+    @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         if (context instanceof OnTweetsDialogFragmentListener) {
@@ -131,12 +137,26 @@ public class TweetsTimelineFragment extends Fragment implements TweetsAdapter.On
      */
     public void fetchTweetsForTimeline() {}
 
+    public void showProgressbar() {
+        List<Tweet> tweets = new ArrayList<>();
+        tweets.add(null);
+        appendTweets(tweets);
+    }
+
+    public void hideProgressbar() {
+        removeTweet(null);
+    }
+
     public void appendTweets(List<Tweet> tweets) {
         mTweets.addAll(tweets);
         mTweetsAdapter.notifyItemRangeInserted(mTweetsAdapter.getItemCount(), tweets.size());
-        mOldestTweetId = tweets.get(tweets.size() - 1).getServerId();
-        if (mNewestTweetId == 0) {
-            mNewestTweetId = tweets.get(0).getServerId();
+        Tweet oldestTweet = tweets.get(tweets.size() - 1);
+        if (oldestTweet != null) {
+            mOldestTweetId = oldestTweet.getServerId();
+        }
+        Tweet newestTweet = tweets.get(0);
+        if (newestTweet != null && mNewestTweetId == 0) {
+            mNewestTweetId = newestTweet.getServerId();
         }
     }
 
@@ -164,6 +184,11 @@ public class TweetsTimelineFragment extends Fragment implements TweetsAdapter.On
     public void displayAlertMessage(final String alertMessage) {
         Snackbar.make(getActivity().findViewById(android.R.id.content), alertMessage,
                 Snackbar.LENGTH_LONG).show();
+    }
+
+    private void removeTweet(Tweet tweet) {
+        mTweets.remove(tweet);
+        mTweetsAdapter.notifyItemRemoved(mTweetsAdapter.getItemCount() - 1);
     }
 
     private void retweet(final Tweet tweet) {

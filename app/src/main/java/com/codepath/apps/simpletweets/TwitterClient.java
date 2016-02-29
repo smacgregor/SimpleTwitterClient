@@ -18,6 +18,7 @@ import java.io.IOException;
  * This is the object responsible for communicating with the Twitter API.
  */
 public class TwitterClient extends OAuthBaseClient {
+
 	public static final Class<? extends Api> REST_API_CLASS = TwitterApi.class;
 	public static final String REST_URL = "https://api.twitter.com/1.1";
 	public static final String REST_CONSUMER_KEY = "pEJuD8GpDWnm5t73hz0BaciGk";
