@@ -195,8 +195,6 @@ public class TweetsTimelineFragment extends Fragment implements TweetsAdapter.On
         TwitterManager.getInstance().retweet(tweet.getServerId(), new TwitterManager.OnTweetUpdatedListener() {
             @Override
             public void onTweetUpdated(Tweet updatedTweet) {
-                // this will be easier when tweets are in a local db
-                tweet.setRetweetCount(updatedTweet.getRetweetCount());
                 mTweetsAdapter.notifyItemChanged(mTweets.indexOf(tweet));
             }
 
@@ -220,8 +218,6 @@ public class TweetsTimelineFragment extends Fragment implements TweetsAdapter.On
         TwitterManager.getInstance().markAsFavorite(tweet.getServerId(), new TwitterManager.OnTweetUpdatedListener() {
             @Override
             public void onTweetUpdated(Tweet updatedTweet) {
-                // this will be easier when tweets are in a local db
-                tweet.setFavoriteCount(updatedTweet.getFavoriteCount());
                 mTweetsAdapter.notifyItemChanged(mTweets.indexOf(tweet));
             }
 

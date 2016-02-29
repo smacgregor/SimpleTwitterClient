@@ -145,10 +145,10 @@ public class TwitterManager {
                 Tweet tweet = parseTweetFromJSON(responseString);
                 Tweet original = Tweet.findTweet(tweet.getServerId());
                 if (original != null) {
+                    original.setFavoriteCount(tweet.getFavoriteCount());
                     tweet = original;
-                } else {
-                    tweet.save();
                 }
+                tweet.save();
                 listener.onTweetUpdated(tweet);
             }
         });
@@ -166,10 +166,10 @@ public class TwitterManager {
                 Tweet tweet = parseTweetFromJSON(responseString);
                 Tweet original = Tweet.findTweet(tweet.getServerId());
                 if (original != null) {
+                    original.setRetweetCount(tweet.getRetweetCount());
                     tweet = original;
-                } else {
-                    tweet.save();
                 }
+                tweet.save();
                 listener.onTweetUpdated(tweet);
             }
         });
@@ -198,7 +198,9 @@ public class TwitterManager {
     }
 
     private Tweet parseTweetFromJSON(String response) {
-        Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+        Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).
+                excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC).
+                create();;
         return gson.fromJson(response, Tweet.class);
     }
 
