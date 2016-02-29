@@ -1,7 +1,5 @@
 package com.codepath.apps.simpletweets.fragments;
 
-import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 
 import com.codepath.apps.simpletweets.R;
@@ -15,20 +13,16 @@ import java.util.List;
  */
 public class HomeTimelineFragment extends TweetsTimelineFragment {
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        fetchTweetsForTimeline();
-    }
-
     /**
      * Fetch the next batch of tweets older than mOldestTweetId.
      */
     @Override
     public void fetchTweetsForTimeline() {
+        showProgressbar();
         TwitterManager.getInstance().fetchTimelineTweets(getOldestTweetId(), 0, new TwitterManager.OnTimelineTweetsReceivedListener() {
             @Override
             public void onTweetsReceived(List<Tweet> tweets) {
+                hideProgressbar();
                 appendTweets(tweets);
             }
 

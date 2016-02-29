@@ -31,7 +31,6 @@ public class UserTimelineFragment extends TweetsTimelineFragment {
         super.onCreate(savedInstanceState);
         long userId = getArguments().getLong(ARGUMENT_USER_ID);
         setUser(User.findUser(userId));
-        fetchTweetsForTimeline();
     }
 
     /**
@@ -39,14 +38,17 @@ public class UserTimelineFragment extends TweetsTimelineFragment {
      */
     @Override
     public void fetchTweetsForTimeline() {
+        showProgressbar();
         TwitterManager.getInstance().fetchUserTimeline(getUser().getServerId(), getOldestTweetId(), 0, new TwitterManager.OnTimelineTweetsReceivedListener() {
             @Override
             public void onTweetsReceived(List<Tweet> tweets) {
+                hideProgressbar();
                 appendTweets(tweets);
             }
 
             @Override
             public void onTweetsFailed(int statusCode, Throwable throwable) {
+                hideProgressbar();
                 displayAlertMessage(getResources().getString(R.string.error_no_network));
             }
 
