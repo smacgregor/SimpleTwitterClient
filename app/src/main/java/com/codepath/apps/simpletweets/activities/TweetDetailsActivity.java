@@ -146,8 +146,7 @@ public class TweetDetailsActivity extends AppCompatActivity implements
         TwitterManager.getInstance().markAsFavorite(mTweet.getServerId(), new TwitterManager.OnTweetUpdatedListener() {
             @Override
             public void onTweetUpdated(Tweet updatedTweet) {
-                mTweet.setFavoriteCount(updatedTweet.getFavoriteCount());
-                mFavoritesButton.setText(Integer.toString(mTweet.getFavoriteCount()));
+                mFavoritesButton.setText(Integer.toString(updatedTweet.getFavoriteCount()));
             }
 
             @Override
@@ -162,8 +161,7 @@ public class TweetDetailsActivity extends AppCompatActivity implements
             @Override
             public void onTweetUpdated(Tweet updatedTweet) {
                 // this will be easier when tweets are in a local db
-                mTweet.setRetweetCount(updatedTweet.getRetweetCount());
-                mRetweetButton.setText(Integer.toString(mTweet.getRetweetCount()));
+                mRetweetButton.setText(Integer.toString(updatedTweet.getRetweetCount()));
             }
 
             @Override
