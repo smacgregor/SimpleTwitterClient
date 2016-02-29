@@ -75,7 +75,7 @@ The following **additional** features are implemented:
 
 Here's a walkthrough of implemented user stories:
 
-<img src='https://cloud.githubusercontent.com/assets/1521460/13386469/87ea369e-de61-11e5-8c2f-d18dbe89f1c2.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+<img src='https://cloud.githubusercontent.com/assets/1521460/13386697/233877e4-de64-11e5-92a7-147b76209d32.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
 
 Here's a walkthrough of offline mode:
 
